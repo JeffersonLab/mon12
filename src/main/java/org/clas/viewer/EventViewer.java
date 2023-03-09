@@ -16,8 +16,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import javax.imageio.ImageIO;
+import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -91,11 +92,11 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     public String outPath = null; 
     public String elog = null;
     private  long triggerMask;
-            
+    private boolean autoSave;
+
     // detector monitors
     public LinkedHashMap<String, DetectorMonitor> monitors = new LinkedHashMap<>();
-    
-    
+ 
     public final void initMonitors() {
         monitors.put("BAND",        new BANDmonitor("BAND"));
         monitors.put("BMT",         new BMTmonitor("BMT"));
@@ -139,7 +140,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         mainPanel.add(processorPane,BorderLayout.PAGE_END);
         
         this.initMonitors();
-        
     }
     
     public void init() {
@@ -155,8 +155,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         JMenuItem menuItem;
         JMenu file = new JMenu("File");
         file.getAccessibleContext().setAccessibleDescription("File options");
-        menuItem = new JMenuItem("Open histograms file");
-        menuItem.getAccessibleContext().setAccessibleDescription("Open histograms file");
+        menuItem = new JMenuItem("Read histograms from file");
+        menuItem.getAccessibleContext().setAccessibleDescription("Read histograms from file");
         menuItem.addActionListener(this);
         file.add(menuItem);
         menuItem = new JMenuItem("Save histograms to file");
@@ -287,8 +287,10 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     public void initsPaths() {
         String dir = ClasUtilsFile.getResourceDir("CLAS12DIR", "etc/bankdefs/hipo4");
         schemaFactory.initFromDirectory(dir);
-        
-        outPath = System.getProperty("user.home") + "/CLAS12MON/output";
+        if (this.autoSave)
+            outPath = System.getProperty("user.home") + "/CLAS12MON/autosave";
+        else 
+            outPath = System.getProperty("user.home") + "/CLAS12MON/output";
         System.out.println("OutPath set to: " + outPath);
     }
         
@@ -372,7 +374,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         this.setCanvasUpdate(canvasUpdateTime);
      }
     
-    
     @Override
     public void actionPerformed(ActionEvent e) {
         System.out.println(e.getActionCommand());
@@ -392,7 +393,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
            setRunNumber(e.getActionCommand());
         }
 
-        if("Open histograms file".equals(e.getActionCommand())) {
+        if("Read histograms from file".equals(e.getActionCommand())) {
             String fileName = null;
             JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -404,9 +405,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             }
             if(fileName != null) this.loadHistosFromFile(fileName);
         }        
-        if("Print histograms as png".equals(e.getActionCommand())) {
-            this.printHistosToFile();
-        }
+
         if("Save histograms to file".equals(e.getActionCommand())) {
             DateFormat df = new SimpleDateFormat("MM-dd-yyyy_hh.mm.ss_aa");
             String fileName = "CLAS12Mon_run_" + this.runNumber + "_" + df.format(new Date()) + ".hipo";
@@ -421,82 +420,25 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             }
             this.saveHistosToFile(fileName);
         }
-        
+
+        if("Print histograms as png".equals(e.getActionCommand())) {
+            this.saveAllImages(true, false);
+        }
+
         if("Upload all histos to the logbook".equals(e.getActionCommand())) {   
-            
-            DateFormat df = new SimpleDateFormat("MM-dd-yyyy_hh.mm.ss_aa");
-            String tstamp = df.format(new Date());
-            String data = outPath + "/clas12mon_" + this.runNumber + "_" + tstamp;        
-            File theDir = new File(data);
-            // if the directory does not exist, create it
-            if (!theDir.exists()) {
-                boolean result = false;
-                try{theDir.mkdir();result = true;} 
-                catch(SecurityException se){}        
-                if(result){ System.out.println("Created directory: " + data);}
-            }
-            
-            String fileName = data + "/clas12mon_histos_" + this.runNumber + "_" + tstamp + ".hipo"; 
-            try{
-                this.saveHistosToFile(fileName);
-            }
-            catch(IndexOutOfBoundsException exc){
-                exc.printStackTrace(); 
-                System.out.println( exc.getMessage());
-            }
-            
-            if(this.CLAS12Canvas.getCanvas("FD")!=null) {
-                String fileName1 = data + "/summary_FD_"+tstamp+".png";
-                System.out.println(fileName1);
-                CLAS12Canvas.getCanvas("FD").save(fileName1);
-            }
-            if(this.CLAS12Canvas.getCanvas("CD")!=null) {
-                String fileName2 = data + "/summary_CD_"+tstamp+".png";
-                System.out.println(fileName2);
-                CLAS12Canvas.getCanvas("CD").save(fileName2);
-            }
-            if(this.CLAS12Canvas.getCanvas("FT")!=null) {
-                String fileName3 = data + "/summary_FT_"+tstamp+".png";
-                System.out.println(fileName3);
-                CLAS12Canvas.getCanvas("FT").save(fileName3);
-            }
-            if(this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER")!=null) {
-                String fileName4 = data + "/summary_RHJT_"+tstamp+".png";
-                System.out.println(fileName4);
-                CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").save(fileName4);
-            }
-            
+            Map<String,String> images = this.saveAllImages(true, true);
             LogEntry entry = new LogEntry("All online monitoring histograms for run number " + this.runNumber, this.elog);
-            
             System.out.println("Starting to upload all monitoring plots");
-            
-            try{
-                if(this.CLAS12Canvas.getCanvas("FD")!=null)
-                    entry.addAttachment(data + "/summary_FD_" + tstamp + ".png", "Summary plots for the forward detector");
-                if(this.CLAS12Canvas.getCanvas("CD")!=null)
-                    entry.addAttachment(data + "/summary_CD_" + tstamp + ".png", "Summary plots for the central detector");
-                if(this.CLAS12Canvas.getCanvas("FT")!=null) 
-                    entry.addAttachment(data + "/summary_FT_" + tstamp + ".png", "Summary plots for the forward tagger");
-                if(this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER")!=null)
-                    entry.addAttachment(data + "/summary_RHJT_" + tstamp + ".png", "Summary plots RF/HEL/JITTER/TRIGGER");
-                System.out.println("Summary plots uploaded");
-                for(String key : monitors.keySet()) {
-                    if (monitors.get(key).isActive()) {
-                        LinkedHashMap<String, String> prints = this.monitors.get(key).printCanvas(data, tstamp);
-                        for(String print: prints.keySet()) {
-                            entry.addAttachment(print, key + " " + prints.get(print));
-                        }
-                        System.out.println(this.monitors.get(key).getDetectorName() + " plots uploaded");
-                    }
+            try {
+                for (String path : images.keySet()) {
+                    entry.addAttachment(path, images.get(path));
                 }
-            
-              long lognumber = entry.submitNow();
+                long lognumber = entry.submitNow();
               System.out.println("Successfully submitted log entry number: " + lognumber); 
             } catch(Exception exc){
                 exc.printStackTrace(); 
                 System.out.println( exc.getMessage());
             }
-              
         }
                  
         if ("Set periodic reset".equals(e.getActionCommand())){
@@ -511,8 +453,58 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         if ("Reset stdout/stderr".equals(e.getActionCommand())){
             DetectorMonitor.resetStreams();
         }
-        
-        
+    }
+
+    /**
+     * @param png whether to save png files
+     * @param hipo whether to save hipo file
+     * @return image Path,Title pairs 
+     */
+    public Map<String,String> saveAllImages(boolean png, boolean hipo) {
+        Map<String,String> ret = new LinkedHashMap<>();
+        DateFormat df = new SimpleDateFormat("MM-dd-yyyy_hh.mm.ss_aa");
+        String tstamp = df.format(new Date());
+        String data = outPath + "/clas12mon_" + this.runNumber + "_" + tstamp;
+        File theDir = new File(data);
+        if (!theDir.exists()) theDir.mkdirs();
+        if (hipo) {
+            try{
+                this.saveHistosToFile(data + "/clas12mon_histos_" + this.runNumber + "_" + tstamp + ".hipo"); 
+            }
+            catch(IndexOutOfBoundsException e){
+                e.printStackTrace(); 
+                System.err.println( e.getMessage());
+            }
+        }
+        if (png) {
+            if (this.CLAS12Canvas.getCanvas("FD") != null) {
+                String fileName = data + "/summary_FD_" + tstamp + ".png";
+                CLAS12Canvas.getCanvas("FD").save(fileName);
+                ret.put(fileName, "Summary plots for the forward detector");
+            }
+            if (this.CLAS12Canvas.getCanvas("CD") != null) {
+                String fileName = data + "/summary_CD_" + tstamp + ".png";
+                CLAS12Canvas.getCanvas("CD").save(fileName);
+                ret.put(fileName, "Summary plots for the central detector");
+            }
+            if (this.CLAS12Canvas.getCanvas("FT") != null) {
+                String fileName = data + "/summary_FT_" + tstamp + ".png";
+                CLAS12Canvas.getCanvas("FT").save(fileName);
+                ret.put(fileName, "Summary plots for the forward tagger");
+            }
+            if (this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER") != null) {
+                String fileName = data + "/summary_RHJT_" + tstamp + ".png";
+                CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").save(fileName);
+                ret.put(fileName, "Summary plots RF/HEL/JITTER/TRIGGER");
+            }
+            for (String key : monitors.keySet()) {
+                if (monitors.get(key).isActive()) {
+                    ret.putAll(this.monitors.get(key).printCanvas(data, tstamp));
+                }
+            }
+        }
+        for (String path : ret.keySet()) System.out.println("Saved "+path);
+        return ret;
     }
 
     public void choosePeriodicReset() {
@@ -615,14 +607,12 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     @Override
     public void dataEventAction(DataEvent event) {
         
-    	this.eventNumber++;
-        
     	DataEvent hipo = null;
    	
-	if(event!=null ){
+        if(event!=null ){
             if(event instanceof EvioDataEvent){
                 Event    dump = clasDecoder.getDataEvent(event);  
-                 Bank   header = clasDecoder.createHeaderBank(this.ccdbRunNumber, getEventNumber(event), (float) 0, (float) 0);
+                Bank   header = clasDecoder.createHeaderBank(this.ccdbRunNumber, getEventNumber(event), (float) 0, (float) 0);
                 Bank  trigger = clasDecoder.createTriggerBank();
                 if(header!=null)  dump.write(header);
                 if(trigger!=null) dump.write(trigger);
@@ -631,10 +621,18 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             else {            	
                 hipo = event; 
             }
-        
-            if(this.histoResetEvents>0 && (this.eventNumber % this.histoResetEvents) == 0)
+
+            if (this.triggerMask == 0L ||  (this.getTriggerWord(event) & this.triggerMask) != 0L ) {
+                this.eventNumber++;
+            }
+
+            if(this.histoResetEvents>0 && (this.eventNumber % this.histoResetEvents) == 0) {
+                if (this.autoSave) {
+                    this.saveAllImages(true,false);
+                }
                 this.resetEventListener();
-            
+            }
+
             if(this.runNumber != this.getRunNumber(hipo)) {
                 this.runNumber = this.getRunNumber(hipo);
                 System.out.println("Setting run number to: " +this.runNumber);
@@ -798,54 +796,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
       
         
     }
-    
-    public void printHistosToFile() {
-        DateFormat df = new SimpleDateFormat("MM-dd-yyyy_hh.mm.ss_aa");
-        String tstamp = df.format(new Date());
-        String data = outPath + "/clas12mon_" + this.runNumber + "_" + tstamp;        
-        File theDir = new File(data);
-        // if the directory does not exist, create it
-        if (!theDir.exists()) {
-            boolean result = false;
-            try{
-                theDir.mkdir();
-                result = true;
-            } 
-            catch(SecurityException se){
-                //handle it
-            }        
-            if(result) {    
-            System.out.println("Created directory: " + data);
-            }
-        }
-        
-        if(this.CLAS12Canvas.getCanvas("FD")!=null) {
-            String fileName1 = data + "/summary_FD_"+tstamp+".png";
-            System.out.println(fileName1);
-            CLAS12Canvas.getCanvas("FD").save(fileName1);
-        }
-        if(this.CLAS12Canvas.getCanvas("CD")!=null) {
-            String fileName2 = data + "/summary_CD_"+tstamp+".png";
-            System.out.println(fileName2);
-            CLAS12Canvas.getCanvas("CD").save(fileName2);
-        }
-        if(this.CLAS12Canvas.getCanvas("FT")!=null) {
-            String fileName3 = data + "/summary_FT_"+tstamp+".png";
-            System.out.println(fileName3);
-            CLAS12Canvas.getCanvas("FT").save(fileName3); 
-        }
-        if(this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER")!=null) {
-            String fileName4 = data + "/summary_RHJT_"+tstamp+".png";
-            System.out.println(fileName4);
-            CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").save(fileName4);
-        }     
-        for(String key : monitors.keySet()) {
-            if(this.monitors.get(key).isActive()) this.monitors.get(key).printCanvas(data,tstamp);
-        }
-        
-        System.out.println("Histogram pngs succesfully saved in: " + data);
-    }
-       
 
     @Override
     public void processShape(DetectorShape2D shape) {
@@ -862,7 +812,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         }      
         this.plotSummaries();
     }
-    
+
     public void saveHistosToFile(String fileName) {
         // TXT table summary FILE //
         TDirectory dir = new TDirectory();
@@ -960,6 +910,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         parser.addOption("-trigger",  "0x0",            "Select trigger bits");
         parser.addOption("-ethost",   "clondaq6",       "Select ET host name");
         parser.addOption("-etip",     "129.57.167.60",  "Select ET host name");
+        parser.addOption("-autosave", "-1",             "Autosave every N events (e.g. for Hydra)");
         parser.parse(args);
 
         int xSize = 1600;
@@ -976,7 +927,13 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         String ethost = parser.getOption("-ethost").stringValue();
         String etip   = parser.getOption("-etip").stringValue();        
         EventViewer viewer = new EventViewer(ethost, etip);
-        
+       
+        if (parser.getOption("-autosave").intValue() > 0) {
+            System.out.println("enabling autosave");
+            viewer.autoSave = true;
+            viewer.histoResetEvents = parser.getOption("-autosave").intValue();
+        }
+
         String tabs     = parser.getOption("-tabs").stringValue();
         if(!tabs.equals("All")) {           
             if(tabs.split(":").length>0) {
