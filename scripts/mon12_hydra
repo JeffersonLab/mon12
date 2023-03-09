@@ -1,0 +1,8 @@
+#!/bin/bash
+
+export CLAS12DIR=/usr/clas12/offline/coatjava/pro
+
+/u/home/baltzell/mon12-autosave/bin/mon12 \
+ -tabs "BMT:BST:CND:CTOF:DC:ECAL:FTCAL:FTHODO:FTOF:FTTRK:HTCC:LTCC:RASTER:RICH:RF:HEL:Trigger:TimeJitter" \
+ -trigger 0x1 -autosave 10000
+

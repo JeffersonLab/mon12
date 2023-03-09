@@ -12,10 +12,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -41,7 +39,6 @@ import javax.swing.text.StyledDocument;
 import org.clas.detectors.*;
 import org.jlab.detector.decode.CLASDecoder4;
 import org.jlab.detector.view.DetectorListener;
-import org.jlab.detector.view.DetectorPane2D;
 import org.jlab.detector.view.DetectorShape2D;
 import org.jlab.groot.base.GStyle;
 import org.jlab.groot.data.TDirectory;
@@ -68,7 +65,6 @@ import org.jlab.utils.options.OptionParser;
 
 public class EventViewer implements IDataEventListener, DetectorListener, ActionListener, ChangeListener {
     
-    List<DetectorPane2D> DetectorPanels     = new ArrayList<DetectorPane2D>();
     JTabbedPane tabbedpane           	    = null;
     JPanel mainPanel 			            = null;
     JMenuBar menuBar                        = null;
@@ -89,8 +85,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     private String defaultEtHost = null;
     private String defaultEtIp   = null;
     
-    public String outPath = null; 
-    public String elog = null;
+    public String outputDirectory = null; 
+    public String logbookName = null;
     private  long triggerMask;
     private boolean autoSave;
 
@@ -283,17 +279,19 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         menuBar.add(trigBitsBeam);
         
     }
-        
+
     public void initsPaths() {
         String dir = ClasUtilsFile.getResourceDir("CLAS12DIR", "etc/bankdefs/hipo4");
         schemaFactory.initFromDirectory(dir);
-        if (this.autoSave)
-            outPath = System.getProperty("user.home") + "/CLAS12MON/autosave";
-        else 
-            outPath = System.getProperty("user.home") + "/CLAS12MON/output";
-        System.out.println("OutPath set to: " + outPath);
+        if (this.outputDirectory == null) {
+            if (this.autoSave)
+                outputDirectory = System.getProperty("user.home") + "/CLAS12MON/autosave";
+            else 
+                outputDirectory = System.getProperty("user.home") + "/CLAS12MON/output";
+        }
+        System.out.println("OutPath set to: " + outputDirectory);
     }
-        
+
     public void initSummary() {
         GStyle.getAxisAttributesX().setTitleFontSize(18);
         GStyle.getAxisAttributesX().setLabelFontSize(14);
@@ -427,7 +425,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
 
         if("Upload all histos to the logbook".equals(e.getActionCommand())) {   
             Map<String,String> images = this.saveAllImages(true, true);
-            LogEntry entry = new LogEntry("All online monitoring histograms for run number " + this.runNumber, this.elog);
+            LogEntry entry = new LogEntry("All online monitoring histograms for run number " + this.runNumber, this.logbookName);
             System.out.println("Starting to upload all monitoring plots");
             try {
                 for (String path : images.keySet()) {
@@ -464,7 +462,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         Map<String,String> ret = new LinkedHashMap<>();
         DateFormat df = new SimpleDateFormat("MM-dd-yyyy_hh.mm.ss_aa");
         String tstamp = df.format(new Date());
-        String data = outPath + "/clas12mon_" + this.runNumber + "_" + tstamp;
+        String data = outputDirectory + "/clas12mon_" + this.runNumber + "_" + tstamp;
         File theDir = new File(data);
         if (!theDir.exists()) theDir.mkdirs();
         if (hipo) {
@@ -911,6 +909,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         parser.addOption("-ethost",   "clondaq6",       "Select ET host name");
         parser.addOption("-etip",     "129.57.167.60",  "Select ET host name");
         parser.addOption("-autosave", "-1",             "Autosave every N events (e.g. for Hydra)");
+        parser.addOption("-outDir",   null,             "Path for output PNG/HIPO files");
         parser.parse(args);
 
         int xSize = 1600;
@@ -929,9 +928,14 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         EventViewer viewer = new EventViewer(ethost, etip);
        
         if (parser.getOption("-autosave").intValue() > 0) {
-            System.out.println("enabling autosave");
+            final int n = parser.getOption("-autosave").intValue();
+            System.out.println(String.format("enabling autosave every %d events",n));
             viewer.autoSave = true;
-            viewer.histoResetEvents = parser.getOption("-autosave").intValue();
+            viewer.histoResetEvents = n;
+        }
+
+        if (parser.getOption("-outDir") != null) {
+            viewer.outputDirectory = parser.getOption("outDir").stringValue();
         }
 
         String tabs     = parser.getOption("-tabs").stringValue();
@@ -957,8 +961,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         viewer.triggerMask = Long.parseLong(trigger,16);
         System.out.println("Trigger mask set to 0x" + trigger);
 
-        viewer.elog = parser.getOption("-logbook").stringValue();
-        System.out.println("Logbook set to " + viewer.elog);
+        viewer.logbookName = parser.getOption("-logbook").stringValue();
+        System.out.println("Logbook set to " + viewer.logbookName);
        
         viewer.init();
         
