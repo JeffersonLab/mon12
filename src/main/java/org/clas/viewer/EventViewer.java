@@ -284,12 +284,9 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         String dir = ClasUtilsFile.getResourceDir("CLAS12DIR", "etc/bankdefs/hipo4");
         schemaFactory.initFromDirectory(dir);
         if (this.outputDirectory == null) {
-            if (this.autoSave)
-                outputDirectory = System.getProperty("user.home") + "/CLAS12MON/autosave";
-            else 
-                outputDirectory = System.getProperty("user.home") + "/CLAS12MON/output";
+            outputDirectory = System.getProperty("user.home") + "/CLAS12MON/output";
         }
-        System.out.println("OutPath set to: " + outputDirectory);
+        System.out.println("Output directory set to: " + outputDirectory);
     }
 
     public void initSummary() {
@@ -462,12 +459,12 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         Map<String,String> ret = new LinkedHashMap<>();
         DateFormat df = new SimpleDateFormat("MM-dd-yyyy_hh.mm.ss_aa");
         String tstamp = df.format(new Date());
-        String data = outputDirectory + "/clas12mon_" + this.runNumber + "_" + tstamp;
-        File theDir = new File(data);
-        if (!theDir.exists()) theDir.mkdirs();
+        String dir = this.outputDirectory + "/clas12mon_" + this.runNumber + "_" + tstamp;
+        File directory = new File(dir);
+        if (!directory.exists()) directory.mkdirs();
         if (hipo) {
             try{
-                this.saveHistosToFile(data + "/clas12mon_histos_" + this.runNumber + "_" + tstamp + ".hipo"); 
+                this.saveHistosToFile(dir + "/clas12mon_histos_" + this.runNumber + "_" + tstamp + ".hipo"); 
             }
             catch(IndexOutOfBoundsException e){
                 e.printStackTrace(); 
@@ -476,28 +473,28 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         }
         if (png) {
             if (this.CLAS12Canvas.getCanvas("FD") != null) {
-                String fileName = data + "/summary_FD_" + tstamp + ".png";
+                String fileName = dir + "/summary_FD_" + tstamp + ".png";
                 CLAS12Canvas.getCanvas("FD").save(fileName);
                 ret.put(fileName, "Summary plots for the forward detector");
             }
             if (this.CLAS12Canvas.getCanvas("CD") != null) {
-                String fileName = data + "/summary_CD_" + tstamp + ".png";
+                String fileName = dir + "/summary_CD_" + tstamp + ".png";
                 CLAS12Canvas.getCanvas("CD").save(fileName);
                 ret.put(fileName, "Summary plots for the central detector");
             }
             if (this.CLAS12Canvas.getCanvas("FT") != null) {
-                String fileName = data + "/summary_FT_" + tstamp + ".png";
+                String fileName = dir + "/summary_FT_" + tstamp + ".png";
                 CLAS12Canvas.getCanvas("FT").save(fileName);
                 ret.put(fileName, "Summary plots for the forward tagger");
             }
             if (this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER") != null) {
-                String fileName = data + "/summary_RHJT_" + tstamp + ".png";
+                String fileName = dir + "/summary_RHJT_" + tstamp + ".png";
                 CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").save(fileName);
                 ret.put(fileName, "Summary plots RF/HEL/JITTER/TRIGGER");
             }
             for (String key : monitors.keySet()) {
                 if (monitors.get(key).isActive()) {
-                    ret.putAll(this.monitors.get(key).printCanvas(data, tstamp));
+                    ret.putAll(this.monitors.get(key).printCanvas(dir, tstamp));
                 }
             }
         }
@@ -935,7 +932,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         }
 
         if (parser.getOption("-outDir") != null) {
-            viewer.outputDirectory = parser.getOption("outDir").stringValue();
+            viewer.outputDirectory = parser.getOption("-outDir").stringValue();
         }
 
         String tabs     = parser.getOption("-tabs").stringValue();
