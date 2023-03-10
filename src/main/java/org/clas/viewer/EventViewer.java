@@ -54,6 +54,7 @@ import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.data.SchemaFactory;
 import org.jlab.utils.system.ClasUtilsFile;
 import org.jlab.elog.LogEntry; 
+import org.jlab.io.evio.EvioETSource;
 import org.jlab.utils.options.OptionParser;
 
         
@@ -924,13 +925,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         String etip   = parser.getOption("-etip").stringValue();        
         EventViewer viewer = new EventViewer(ethost, etip);
        
-        if (parser.getOption("-autosave").intValue() > 0) {
-            final int n = parser.getOption("-autosave").intValue();
-            System.out.println(String.format("enabling autosave every %d events",n));
-            viewer.autoSave = true;
-            viewer.histoResetEvents = n;
-        }
-
         if (parser.getOption("-outDir") != null) {
             viewer.outputDirectory = parser.getOption("-outDir").stringValue();
         }
@@ -970,6 +964,15 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         frame.setJMenuBar(viewer.menuBar);
         frame.setSize(xSize, ySize);
         frame.setVisible(true);
+
+        if (parser.getOption("-autosave").intValue() > 0) {
+            final int n = parser.getOption("-autosave").intValue();
+            System.out.println(String.format("enabling autosave every %d events",n));
+            viewer.autoSave = true;
+            viewer.histoResetEvents = n;
+            viewer.connectAndRun(viewer.defaultEtHost,viewer.defaultEtIp, "/et/clasprod");
+        }
+
     }
        
 }
