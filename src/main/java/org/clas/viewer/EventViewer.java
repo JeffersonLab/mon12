@@ -631,9 +631,10 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         // if run number changes, automatically reset histograms:
         if (this.runNumber != this.getRunNumber(hipo)) {
             this.runNumber = this.getRunNumber(hipo);
-            System.out.println("Setting run number to: " + this.runNumber);
             resetEventListener();
+            this.eventCounter = 0;
             this.clas12Textinfo.setText("\nrun number: " + this.runNumber + "\n");
+            System.out.println("Setting run number to: " + this.runNumber);
         }
 
         // finally, fill the histograms:
