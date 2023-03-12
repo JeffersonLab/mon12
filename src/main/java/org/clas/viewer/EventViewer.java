@@ -54,6 +54,7 @@ import org.jlab.jnp.hipo4.data.Event;
 import org.jlab.jnp.hipo4.data.SchemaFactory;
 import org.jlab.utils.system.ClasUtilsFile;
 import org.jlab.elog.LogEntry; 
+import org.jlab.utils.benchmark.BenchmarkTimer;
 import org.jlab.utils.options.OptionParser;
 
         
@@ -80,7 +81,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     private int ccdbRunNumber = 0;
     private int eventCounter = 0;
     private int histoResetEvents = 0;
-        
+    BenchmarkTimer timer = new BenchmarkTimer("mon12");
+
     private String defaultEtHost = null;
     private String defaultEtIp = null;
     
@@ -536,7 +538,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         DataBank bank = event.getBank("RUN::config");	        
         return bank != null ? bank.getLong("trigger", 0) : 0;
     } 
-    
+
     private void copyHitList(String k, String mon1, String mon2) {
     	if (k == null ? mon1 != null : !k.equals(mon1)) return;
     	this.monitors.get(mon1).ttdcs = this.monitors.get(mon2).ttdcs;
@@ -549,6 +551,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     @Override
     public void dataEventAction(DataEvent event) {
         
+        this.timer.resume();
         if (event == null) return;
 
         // convert event to HIPO:
@@ -565,13 +568,12 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         // store values for this event:
         final long eventTriggerWord = this.getTriggerWord(hipo);
         final int eventRunNumber = this.getRunNumber(hipo);
-
-        // if run number is valid and changes, automatically reset histograms and event counter:
+        
+        // if run number is valid and changes, automatically reset histograms:
         if (eventRunNumber != this.runNumber && eventRunNumber > 1) {
             System.out.println("\nZeroing event counter and setting run number to: " + eventRunNumber + "\n");
-            resetEventListener();
+            this.resetEventListener();
             this.runNumber = eventRunNumber;
-            this.eventCounter = 0;
             this.clas12Textinfo.setText("\nrun number: " + this.runNumber + "\n");
         }
 
@@ -592,6 +594,21 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
                 this.monitors.get(key).dataEventAction(hipo);
             }
         }
+    }
+
+    @Override
+    public void resetEventListener() {
+        System.out.println("\n******* Zeroing histograms and event counter.\n");
+        this.timer.pause();
+        System.out.println(this.timer);
+        this.eventCounter = 0;
+        for(String key : monitors.keySet()) {
+            if(this.monitors.get(key).isActive()) {
+                this.monitors.get(key).resetEventListener();
+                this.monitors.get(key).timerUpdate();
+            }
+        }      
+        this.plotSummaries();
     }
 
     public void loadHistosFromFile(String fileName) {
@@ -720,18 +737,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             if(this.monitors.get("Trigger").isActive() && this.monitors.get("Trigger").getDetectorSummary()!=null) 
                 this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").draw(this.monitors.get("Trigger").getDetectorSummary().getH1F("summary"));
         }
-    }
-
-    @Override
-    public void resetEventListener() {
-        System.out.println("\n******* Zeroing histograms.\n");
-        for(String key : monitors.keySet()) {
-            if(this.monitors.get(key).isActive()) {
-                this.monitors.get(key).resetEventListener();
-                this.monitors.get(key).timerUpdate();
-            }
-        }      
-        this.plotSummaries();
     }
 
     public void saveHistosToFile(String fileName) {
