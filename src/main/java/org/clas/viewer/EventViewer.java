@@ -65,14 +65,14 @@ import org.jlab.utils.options.OptionParser;
 
 public class EventViewer implements IDataEventListener, DetectorListener, ActionListener, ChangeListener {
     
-    JTabbedPane tabbedpane           	    = null;
-    JPanel mainPanel 			            = null;
-    JMenuBar menuBar                        = null;
-    JTextPane clas12Textinfo                = new JTextPane();
-    DataSourceProcessorPane processorPane   = null;
-    EmbeddedCanvasTabbed CLAS12Canvas       = null;
-    private final SchemaFactory     schemaFactory = new SchemaFactory();
-    CLASDecoder4                clasDecoder = new CLASDecoder4(); 
+    JTabbedPane tabbedpane = null;
+    JPanel mainPanel = null;
+    JMenuBar menuBar = null;
+    JTextPane clas12Textinfo = new JTextPane();
+    DataSourceProcessorPane processorPane = null;
+    EmbeddedCanvasTabbed CLAS12Canvas = null;
+    private final SchemaFactory schemaFactory = new SchemaFactory();
+    CLASDecoder4 clasDecoder = new CLASDecoder4(); 
 
     private int canvasUpdateTime = 2000;
     private final int analysisUpdateTime = 100;
@@ -82,53 +82,53 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     private int histoResetEvents = 0;
         
     private String defaultEtHost = null;
-    private String defaultEtIp   = null;
+    private String defaultEtIp = null;
     
     public String outputDirectory = null; 
     public String logbookName = null;
-    private  long triggerMask;
+    private long triggerMask;
     private boolean autoSave;
 
     // detector monitors
     public LinkedHashMap<String, DetectorMonitor> monitors = new LinkedHashMap<>();
  
     public final void initMonitors() {
-        monitors.put("BAND",        new BANDmonitor("BAND"));
-        monitors.put("BMT",         new BMTmonitor("BMT"));
-        monitors.put("BST",         new BSTmonitor("BST"));
-        monitors.put("CND",         new CNDmonitor("CND")); 
-        monitors.put("CTOF",        new CTOFmonitor("CTOF")); 
-        monitors.put("DC",          new DCmonitor("DC"));     
-        monitors.put("ECAL",        new ECmonitor("ECAL"));       
-        monitors.put("FMT",         new FMTmonitor("FMT"));      
-        monitors.put("FTCAL",       new FTCALmonitor("FTCAL"));   
-        monitors.put("FTHODO",      new FTHODOmonitor("FTHODO")); 
-        monitors.put("FTOF",        new FTOFmonitor("FTOF"));             
-        monitors.put("FTTRK",       new FTTRKmonitor("FTTRK"));   
-        monitors.put("HTCC",        new HTCCmonitor("HTCC"));     
-        monitors.put("LTCC",        new LTCCmonitor("LTCC")); 
-        monitors.put("RASTER",      new RASTERmonitor("RASTER"));    
-        monitors.put("RICH",        new RICHmonitor("RICH"));    
-        monitors.put("RTPC",        new RTPCmonitor("RTPC"));    
-        monitors.put("RF",          new RFmonitor("RF"));       
-        monitors.put("HEL",         new HELmonitor("HEL"));      
-        monitors.put("FCUP",        new FCUPmonitor("FCUP")); 
-        monitors.put("Trigger",     new TRIGGERmonitor("Trigger"));
-        monitors.put("TimeJitter",  new TJITTERmonitor("TimeJitter"));
+        this.monitors.put("BAND",        new BANDmonitor("BAND"));
+        this.monitors.put("BMT",         new BMTmonitor("BMT"));
+        this.monitors.put("BST",         new BSTmonitor("BST"));
+        this.monitors.put("CND",         new CNDmonitor("CND")); 
+        this.monitors.put("CTOF",        new CTOFmonitor("CTOF")); 
+        this.monitors.put("DC",          new DCmonitor("DC"));     
+        this.monitors.put("ECAL",        new ECmonitor("ECAL"));       
+        this.monitors.put("FMT",         new FMTmonitor("FMT"));      
+        this.monitors.put("FTCAL",       new FTCALmonitor("FTCAL"));   
+        this.monitors.put("FTHODO",      new FTHODOmonitor("FTHODO")); 
+        this.monitors.put("FTOF",        new FTOFmonitor("FTOF"));             
+        this.monitors.put("FTTRK",       new FTTRKmonitor("FTTRK"));   
+        this.monitors.put("HTCC",        new HTCCmonitor("HTCC"));     
+        this.monitors.put("LTCC",        new LTCCmonitor("LTCC")); 
+        this.monitors.put("RASTER",      new RASTERmonitor("RASTER"));    
+        this.monitors.put("RICH",        new RICHmonitor("RICH"));    
+        this.monitors.put("RTPC",        new RTPCmonitor("RTPC"));    
+        this.monitors.put("RF",          new RFmonitor("RF"));       
+        this.monitors.put("HEL",         new HELmonitor("HEL"));      
+        this.monitors.put("FCUP",        new FCUPmonitor("FCUP")); 
+        this.monitors.put("Trigger",     new TRIGGERmonitor("Trigger"));
+        this.monitors.put("TimeJitter",  new TJITTERmonitor("TimeJitter"));
     }
                     
     public EventViewer(String host, String ip) {  
-        mainPanel = new JPanel();	
-        mainPanel.setLayout(new BorderLayout());
-        tabbedpane = new JTabbedPane();
-        tabbedpane.addChangeListener(this);
-        defaultEtHost = host;
-        defaultEtIp   = ip;
-        processorPane = new DataSourceProcessorPane(defaultEtHost, defaultEtIp);
-        processorPane.setUpdateRate(analysisUpdateTime);
-        processorPane.addEventListener(this);
-        mainPanel.add(tabbedpane);
-        mainPanel.add(processorPane,BorderLayout.PAGE_END);
+        this.mainPanel = new JPanel();	
+        this.mainPanel.setLayout(new BorderLayout());
+        this.tabbedpane = new JTabbedPane();
+        this.tabbedpane.addChangeListener(this);
+        this.defaultEtHost = host;
+        this.defaultEtIp   = ip;
+        this.processorPane = new DataSourceProcessorPane(defaultEtHost, defaultEtIp);
+        this.processorPane.setUpdateRate(analysisUpdateTime);
+        this.processorPane.addEventListener(this);
+        this.mainPanel.add(tabbedpane);
+        this.mainPanel.add(processorPane,BorderLayout.PAGE_END);
         this.initMonitors();
     }
     
@@ -140,7 +140,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     }
     
     public void initMenus() {   
-        menuBar = new JMenuBar();
+        this.menuBar = new JMenuBar();
         JMenuItem menuItem;
         JMenu file = new JMenu("File");
         file.getAccessibleContext().setAccessibleDescription("File options");
@@ -156,7 +156,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         menuItem.getAccessibleContext().setAccessibleDescription("Print histograms as png");
         menuItem.addActionListener(this);
         file.add(menuItem);
-        menuBar.add(file);
+        this.menuBar.add(file);
 
         JMenu settings = new JMenu("Settings");
         settings.getAccessibleContext().setAccessibleDescription("Choose monitoring parameters");
@@ -180,7 +180,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         menuItem.getAccessibleContext().setAccessibleDescription("Set run number");
         menuItem.addActionListener(this);
         settings.add(menuItem);
-        menuBar.add(settings);
+        this.menuBar.add(settings);
          
         JMenu upload = new JMenu("Upload");
         upload.getAccessibleContext().setAccessibleDescription("Upload histograms to the Logbook");
@@ -188,7 +188,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         menuItem.getAccessibleContext().setAccessibleDescription("Upload all histos to the logbook");
         menuItem.addActionListener(this);
         upload.add(menuItem);
-        menuBar.add(upload);
+        this.menuBar.add(upload);
         
         JMenu reset = new JMenu("Reset");
         reset.getAccessibleContext().setAccessibleDescription("Reset histograms");        
@@ -208,7 +208,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         menuItemStream.getAccessibleContext().setAccessibleDescription("Reset stdout/stderr");
         menuItemStream.addActionListener(this);
         reset.add(menuItemStream);        
-        menuBar.add(reset);
+        this.menuBar.add(reset);
 
         String[] triggers = { "Electron OR", "Electron Sec 1","Electron Sec 2","Electron Sec 3",
                         "Electron Sec 4","Electron Sec 5","Electron Sec 6",
@@ -224,7 +224,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
                 @Override
                 @SuppressWarnings("empty-statement")
                 public void itemStateChanged(ItemEvent e) {
-                	
                     if(e.getStateChange() == ItemEvent.SELECTED) {
                         for(String key : monitors.keySet()) {
                             monitors.get(key).setUITriggerMask(bit);
@@ -236,7 +235,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
                     };
                 }
             });
-            boolean bstate = ((triggerMask >> i) & 1) == 1;
+            boolean bstate = ((this.triggerMask >> i) & 1) == 1;
             bb.setState(bstate);
             trigBitsBeam.add(bb); 
         	        	
@@ -246,11 +245,11 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
 
     public void initsPaths() {
         String dir = ClasUtilsFile.getResourceDir("CLAS12DIR", "etc/bankdefs/hipo4");
-        schemaFactory.initFromDirectory(dir);
+        this.schemaFactory.initFromDirectory(dir);
         if (this.outputDirectory == null) {
-            outputDirectory = System.getProperty("user.home") + "/CLAS12MON/output";
+            this.outputDirectory = System.getProperty("user.home") + "/CLAS12MON/output";
         }
-        System.out.println("Output directory set to: " + outputDirectory);
+        System.out.println("Output directory set to: " + this.outputDirectory);
     }
 
     public void initSummary() {
@@ -288,7 +287,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         JPanel CLAS12View = new JPanel(new BorderLayout());
         JSplitPane splitPanel = new JSplitPane();
         splitPanel.setLeftComponent(CLAS12View);
-        splitPanel.setRightComponent(CLAS12Canvas);
+        splitPanel.setRightComponent(this.CLAS12Canvas);
         JTextPane clas12Text   = new JTextPane();
         clas12Text.setText("CLAS12\n monitoring plots\n V6.0\n");
         clas12Text.setEditable(false);       
@@ -302,7 +301,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         clas12Text.setBackground(CLAS12View.getBackground());
         clas12Text.setFont(new Font("Avenir",Font.PLAIN,20));
         JLabel clas12Design = this.getImage("https://www.jlab.org/Hall-B/clas12-web/sidebar/clas12-design.jpg",0.08);
-        CLAS12View.add(clas12Textinfo,BorderLayout.BEFORE_FIRST_LINE );
+        CLAS12View.add(this.clas12Textinfo,BorderLayout.BEFORE_FIRST_LINE );
         CLAS12View.add(clas12Design);
         CLAS12View.add(clas12Text,BorderLayout.PAGE_END);
 
@@ -310,21 +309,21 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     }
     
     public void createSummary(String name, int nx, int ny) {
-        if(CLAS12Canvas==null) CLAS12Canvas = new EmbeddedCanvasTabbed(name);
-        else                   CLAS12Canvas.addCanvas(name);
-        CLAS12Canvas.getCanvas(name).divide(nx,ny);
-        CLAS12Canvas.getCanvas(name).setGridX(false);
-        CLAS12Canvas.getCanvas(name).setGridY(false); 
+        if(this.CLAS12Canvas==null) this.CLAS12Canvas = new EmbeddedCanvasTabbed(name);
+        else                   this.CLAS12Canvas.addCanvas(name);
+        this.CLAS12Canvas.getCanvas(name).divide(nx,ny);
+        this.CLAS12Canvas.getCanvas(name).setGridX(false);
+        this.CLAS12Canvas.getCanvas(name).setGridY(false); 
     }
     public void initTabs() {
         this.plotSummaries();
-        for(String key : monitors.keySet()) {
-            if(monitors.get(key).isActive())
-                this.tabbedpane.add(this.monitors.get(key).getDetectorPanel(), monitors.get(key).getDetectorName()); //don't show FMT tab
-            monitors.get(key).getDetectorView().getView().addDetectorListener(this);                       
+        for(String key : this.monitors.keySet()) {
+            if(this.monitors.get(key).isActive())
+                this.tabbedpane.add(this.monitors.get(key).getDetectorPanel(), this.monitors.get(key).getDetectorName()); //don't show FMT tab
+            this.monitors.get(key).getDetectorView().getView().addDetectorListener(this);                       
         }
         this.tabbedpane.add(new Acronyms(),"Acronyms");
-        this.setCanvasUpdate(canvasUpdateTime);
+        this.setCanvasUpdate(this.canvasUpdateTime);
      }
     
     @Override
@@ -344,18 +343,17 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
            }
         }
         if("Set DC occupancy scale max".equals(e.getActionCommand())) {
-           setDCRange(e.getActionCommand());
+           this.setDCRange(e.getActionCommand());
         }
         if("Set run number".equals(e.getActionCommand())) {
-           setRunNumber(e.getActionCommand());
+           this.setRunNumber(e.getActionCommand());
         }
         if("Read histograms from file".equals(e.getActionCommand())) {
             JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             File workingDirectory = new File(System.getProperty("user.dir"));  
             fc.setCurrentDirectory(workingDirectory);
-            int option = fc.showOpenDialog(null);
-            if (option == JFileChooser.APPROVE_OPTION) {
+            if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                 String fileName = fc.getSelectedFile().getAbsolutePath();
                 this.loadHistosFromFile(fileName);
             }
@@ -368,8 +366,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             fc.setCurrentDirectory(workingDirectory);
             File file = new File(fileName);
             fc.setSelectedFile(file);
-            int returnValue = fc.showSaveDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
+            if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
                fileName = fc.getSelectedFile().getAbsolutePath();
                this.saveHistosToFile(fileName);
             }
@@ -398,7 +395,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         if ( e.getActionCommand().substring(0, 5).equals("Reset")
                 && e.getActionCommand().split(" ").length==3){
             String key = e.getActionCommand().split(" ")[1];
-            if(monitors.containsKey(key)) monitors.get(key).resetEventListener();
+            if(this.monitors.containsKey(key)) this.monitors.get(key).resetEventListener();
         }
         if ("Reset stdout/stderr".equals(e.getActionCommand())){
             DetectorMonitor.resetStreams();
@@ -430,26 +427,26 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         if (png) {
             if (this.CLAS12Canvas.getCanvas("FD") != null) {
                 String fileName = dir + "/summary_FD_" + tstamp + ".png";
-                CLAS12Canvas.getCanvas("FD").save(fileName);
+                this.CLAS12Canvas.getCanvas("FD").save(fileName);
                 ret.put(fileName, "Summary plots for the forward detector");
             }
             if (this.CLAS12Canvas.getCanvas("CD") != null) {
                 String fileName = dir + "/summary_CD_" + tstamp + ".png";
-                CLAS12Canvas.getCanvas("CD").save(fileName);
+                this.CLAS12Canvas.getCanvas("CD").save(fileName);
                 ret.put(fileName, "Summary plots for the central detector");
             }
             if (this.CLAS12Canvas.getCanvas("FT") != null) {
                 String fileName = dir + "/summary_FT_" + tstamp + ".png";
-                CLAS12Canvas.getCanvas("FT").save(fileName);
+                this.CLAS12Canvas.getCanvas("FT").save(fileName);
                 ret.put(fileName, "Summary plots for the forward tagger");
             }
             if (this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER") != null) {
                 String fileName = dir + "/summary_RHJT_" + tstamp + ".png";
-                CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").save(fileName);
+                this.CLAS12Canvas.getCanvas("RF/HEL/JITTER/TRIGGER").save(fileName);
                 ret.put(fileName, "Summary plots RF/HEL/JITTER/TRIGGER");
             }
-            for (String key : monitors.keySet()) {
-                if (monitors.get(key).isActive()) {
+            for (String key : this.monitors.keySet()) {
+                if (this.monitors.get(key).isActive()) {
                     ret.putAll(this.monitors.get(key).printCanvas(dir, tstamp));
                 }
             }
@@ -542,11 +539,11 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     
     private void copyHitList(String k, String mon1, String mon2) {
     	if (k == null ? mon1 != null : !k.equals(mon1)) return;
-    	monitors.get(mon1).ttdcs = monitors.get(mon2).ttdcs;
-    	monitors.get(mon1).ftdcs = monitors.get(mon2).ftdcs;
-    	monitors.get(mon1).fadcs = monitors.get(mon2).fadcs;
-   	monitors.get(mon1).fapmt = monitors.get(mon2).fapmt;
-    	monitors.get(mon1).ftpmt = monitors.get(mon2).ftpmt;
+    	this.monitors.get(mon1).ttdcs = this.monitors.get(mon2).ttdcs;
+    	this.monitors.get(mon1).ftdcs = this.monitors.get(mon2).ftdcs;
+    	this.monitors.get(mon1).fadcs = this.monitors.get(mon2).fadcs;
+   	this.monitors.get(mon1).fapmt = this.monitors.get(mon2).fapmt;
+    	this.monitors.get(mon1).ftpmt = this.monitors.get(mon2).ftpmt;
     }
     
     @Override
@@ -557,12 +554,12 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         // convert event to HIPO:
     	DataEvent hipo = event;
         if (event instanceof EvioDataEvent) {
-            Event dump = clasDecoder.getDataEvent(event);
-            Bank header = clasDecoder.createHeaderBank(this.ccdbRunNumber, getEventNumber(event), (float) 0, (float) 0);
-            Bank trigger = clasDecoder.createTriggerBank();
+            Event dump = this.clasDecoder.getDataEvent(event);
+            Bank header = this.clasDecoder.createHeaderBank(this.ccdbRunNumber, getEventNumber(event), (float) 0, (float) 0);
+            Bank trigger = this.clasDecoder.createTriggerBank();
             if (header != null) dump.write(header);
             if (trigger != null) dump.write(trigger);
-            hipo = new HipoDataEvent(dump, schemaFactory);
+            hipo = new HipoDataEvent(dump, this.schemaFactory);
         }
 
         // store values for this event:
@@ -603,9 +600,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         dir.readFile(fileName);
         dir.cd();
         dir.pwd();
-        for(String key : monitors.keySet()) {
+        for(String key : this.monitors.keySet())
             this.monitors.get(key).readDataGroup(dir);
-        }
         this.plotSummaries();
     }
 
@@ -775,12 +771,12 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     
     private void setDCRange(String actionCommand) {
         System.out.println("Set normalized DC occuopancy range maximum");
-        String  dcScale = (String) JOptionPane.showInputDialog(null, "Set normalized DC occuopancy range maximum to ", " ", JOptionPane.PLAIN_MESSAGE, null, null, "15");
+        String dcScale = (String) JOptionPane.showInputDialog(null, "Set normalized DC occuopancy range maximum to ", " ", JOptionPane.PLAIN_MESSAGE, null, null, "15");
         if (dcScale != null) { 
-            double DC_scale_max= 0;
-            try {DC_scale_max = Double.parseDouble(dcScale);} 
+            double dcScaleMax= 0;
+            try {dcScaleMax = Double.parseDouble(dcScale);} 
             catch (NumberFormatException f) {JOptionPane.showMessageDialog(null, "Value must be a positive integer!");}
-            if (DC_scale_max > 0){ this.monitors.get("DC").max_occ = DC_scale_max;} 
+            if (dcScaleMax > 0){ this.monitors.get("DC").max_occ = dcScaleMax;} 
             else {JOptionPane.showMessageDialog(null, "Value must be a positive number!");}   
         }
     }
@@ -798,7 +794,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             }
             if (currentRunNumber > 0){ 
                 this.ccdbRunNumber = currentRunNumber;               
-                clasDecoder.setRunNumber(currentRunNumber,true);
+                this.clasDecoder.setRunNumber(currentRunNumber,true);
             } 
             else {JOptionPane.showMessageDialog(null, "Value must be a positive integer!");}   
         }
