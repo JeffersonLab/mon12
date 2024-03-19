@@ -98,12 +98,10 @@ public class TJITTERmonitor  extends DetectorMonitor {
     @Override
     public void processEvent(DataEvent event) {
         
-        DataBank recRun    = null;
         DataBank ctofADC = null;
         DataBank ctofTDC = null;
         DataBank ftofADC = null;
         DataBank ftofTDC = null;
-        if(event.hasBank("RUN::config"))            recRun      = event.getBank("RUN::config");
         if(event.hasBank("CTOF::adc"))              ctofADC     = event.getBank("CTOF::adc");
         if(event.hasBank("CTOF::tdc"))              ctofTDC     = event.getBank("CTOF::tdc");
         if(event.hasBank("FTOF::adc"))              ftofADC     = event.getBank("FTOF::adc");
@@ -111,19 +109,16 @@ public class TJITTERmonitor  extends DetectorMonitor {
        
 	int triggerPhase0=0;
 	int triggerPhase=0;
-        if(recRun!=null) {
-            int runNumber  = recRun.getInt("run", 0);
-            long timestamp = recRun.getLong("timestamp",0);    
-            this.jitterConfig = this.getCcdb().getConstants(runNumber, "/calibration/ftof/time_jitter");
-            this.period  = jitterConfig.getDoubleValue("period",0,0,0);
-            this.phase   = jitterConfig.getIntValue("phase",0,0,0);
-            this.ncycles = jitterConfig.getIntValue("cycles",0,0,0);           
+        this.jitterConfig = this.getCcdb().getConstants(runNumber, "/calibration/ftof/time_jitter");
+        this.period  = jitterConfig.getDoubleValue("period",0,0,0);
+        this.phase   = jitterConfig.getIntValue("phase",0,0,0);
+        this.ncycles = jitterConfig.getIntValue("cycles",0,0,0);           
 //            System.out.println(period + phase + ncycles + " " + timestamp + " " + triggerPhase0);
-            if(this.ncycles>0){
-                triggerPhase0 = (int) ((timestamp)%this.ncycles); // TI derived phase correction due to TDC and FADC clock differences
-                triggerPhase  = (int) ((timestamp+this.phase)%this.ncycles); // TI derived phase correction due to TDC and FADC clock differences
-            }
+        if(this.ncycles>0){
+            triggerPhase0 = (int) ((this.timeStamp)%this.ncycles); // TI derived phase correction due to TDC and FADC clock differences
+            triggerPhase  = (int) ((this.timeStamp+this.phase)%this.ncycles); // TI derived phase correction due to TDC and FADC clock differences
         }
+        
         if(ctofADC!=null && ctofTDC!=null) {
 	    IndexedList<ArrayList<Integer>> tdcs = new IndexedList<>(3);
 	    IndexedList<ArrayList<Double>>  adcs = new IndexedList<>(3);
@@ -151,10 +146,8 @@ public class TJITTERmonitor  extends DetectorMonitor {
             }
             for (int icomp = 1; icomp < this.ctofPaddles * 2 + 1; icomp++) {
                 if (tdcs.hasItem(1, 1, icomp) && adcs.hasItem(1, 1, icomp)) {
-                    List<Integer> listTDC = new ArrayList<>();
-                    List<Double> listADC = new ArrayList<>();
-                    listTDC = tdcs.getItem(1, 1, icomp);
-                    listADC = adcs.getItem(1, 1, icomp);
+                    List<Integer> listTDC = tdcs.getItem(1, 1, icomp);
+                    List<Double> listADC = adcs.getItem(1, 1, icomp);
                     for (int iadc = 0; iadc < listADC.size(); iadc++) {
                         for (int itdc = 0; itdc < listTDC.size(); itdc++) {
                             double adc = listADC.get(iadc);
@@ -167,8 +160,8 @@ public class TJITTERmonitor  extends DetectorMonitor {
 	    }
         }
         if (ftofADC != null && ftofTDC != null) {
-            IndexedList<ArrayList<Integer>> tdcs = new IndexedList<ArrayList<Integer>>(3);
-            IndexedList<ArrayList<Double>>  adcs = new IndexedList<ArrayList<Double>>(3);
+            IndexedList<ArrayList<Integer>> tdcs = new IndexedList<>(3);
+            IndexedList<ArrayList<Double>>  adcs = new IndexedList<>(3);
             for (int i = 0; i < ftofADC.rows(); i++) {
                 int sector = ftofADC.getByte("sector", i);
                 int layer  = ftofADC.getByte("layer", i);

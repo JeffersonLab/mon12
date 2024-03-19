@@ -187,7 +187,7 @@ public class HELmonitor extends DetectorMonitor {
 
         processEventBoard(event);
 
-        if (event.hasBank("RUN::trigger") && event.hasBank("RUN::config") && event.hasBank("HEL::adc")) {
+        if (event.hasBank("RUN::trigger") && event.hasBank("HEL::adc")) {
             DataBank bank = event.getBank("HEL::adc");
             int rows = bank.rows();
             int hel     = -1;
