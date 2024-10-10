@@ -11,7 +11,6 @@ import org.jlab.groot.group.DataGroup;
 import org.jlab.groot.math.F1D;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
-import org.jlab.utils.groups.IndexedTable;
 
 /**
  *
@@ -19,10 +18,6 @@ import org.jlab.utils.groups.IndexedTable;
  */
 
 public class RFmonitor extends DetectorMonitor {
-    
-    IndexedTable rfConfig = null;
-    private int    ncycles  = 40;
-    private int    eventNumber = 0;
     
     public RFmonitor(String name) {
         super(name);
@@ -37,6 +32,7 @@ public class RFmonitor extends DetectorMonitor {
     
     @Override
     public void createHistos() {
+        this.setRF();
         // create histograms
         int tdcMin = (int) (ncycles*rfbucket/tdcconv)/-100;
         int tdcMax = (int) (ncycles*3*rfbucket/tdcconv)+100;
@@ -295,23 +291,6 @@ public class RFmonitor extends DetectorMonitor {
     @Override
     public void processEvent(DataEvent event) {
         
-        if (event.hasBank("RUN::config")) {
-            DataBank head = event.getBank("RUN::config");
-            int runNumber = head.getInt("run", 0);
-            this.eventNumber = head.getInt("event", 0);
-            rfConfig = this.getCcdb().getConstants(runNumber, "/calibration/eb/rf/config");
-            double run_tdc2Time = rfConfig.getDoubleValue("tdc2time", 1, 1, 1);
-            double run_rfbucket = rfConfig.getDoubleValue("clock", 1, 1, 1);
-            int run_ncycles = rfConfig.getIntValue("cycles", 1, 1, 1);
-            if (run_tdc2Time != this.tdcconv || run_rfbucket != this.rfbucket || run_ncycles != this.ncycles) {
-                this.tdcconv = run_tdc2Time;
-                this.rfbucket = run_rfbucket;
-                this.ncycles = run_ncycles;
-                this.resetEventListener();
-                System.out.println("RF config parameter changed to: \n\t tdc2time = " + this.tdcconv + "\n\t rf bucket = " + this.rfbucket + "\n\t n. of cycles = " + this.ncycles);
-            }
-//            System.out.println();
-        }
         // process event info and save into data group
         ArrayList<Integer> rf1 = new ArrayList();
         ArrayList<Integer> rf2 = new ArrayList();
@@ -470,7 +449,7 @@ public class RFmonitor extends DetectorMonitor {
         f1rf.setParameter(1, mean);
         f1rf.setParameter(2, 0.02);
         f1rf.setRange(mean-3.*sigma,mean+3.*sigma);
-        DataFitter.fit(f1rf, hirf, "Q"); //No options uses error for sigma        
+        if(amp>0) DataFitter.fit(f1rf, hirf, "Q"); //No options uses error for sigma        
     }
     
 }
