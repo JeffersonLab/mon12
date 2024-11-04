@@ -17,7 +17,7 @@ public class DCmonitor extends DetectorMonitor {
     
     public DCmonitor(String name) {
         super(name);
-        this.setDetectorTabNames("occupancy", "occupancyNorm", "occupancyPercent", "multiplicity", "tdc2d", "tdc1d_s");
+        this.setDetectorTabNames("occupancy", "occupancyNorm", "occupancyPercent", "multiplicity", "width", "tdc2d", "tdc1d_s");
         this.useSectorButtons(true);
         this.init(false);
         this.getCcdb().setVariation("default");
@@ -81,14 +81,21 @@ public class DCmonitor extends DetectorMonitor {
             mult.setTitle("multiplicity sector " + sector);
             mult.setFillColor(3);
             
-            DataGroup dg = new DataGroup(7,1);
+            H1F width = new H1F("width"+ sector, "Width sector "+ sector, 200, 0., 1000);
+            width.setTitleX("hit width");
+            width.setTitleY("counts");
+            width.setTitle("widthiplicity sector " + sector);
+            width.setFillColor(3);
+            
+            DataGroup dg = new DataGroup(8,1);
             dg.addDataSet(raw, 0);
             dg.addDataSet(occ, 1);
             dg.addDataSet(reg_occ, 2);
             dg.addDataSet(raw_reg_occ, 3);
             dg.addDataSet(tdc_raw, 4);
             dg.addDataSet(mult, 5);
-            dg.addDataSet(raw_summary, 6);
+            dg.addDataSet(width, 6);
+            dg.addDataSet(raw_summary, 7);
             this.getDataGroup().add(dg, sector,0,0);
         }
         
@@ -121,6 +128,9 @@ public class DCmonitor extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("multiplicity").divide(2, 3);
         this.getDetectorCanvas().getCanvas("multiplicity").setGridX(false);
         this.getDetectorCanvas().getCanvas("multiplicity").setGridY(false);
+        this.getDetectorCanvas().getCanvas("width").divide(2, 3);
+        this.getDetectorCanvas().getCanvas("width").setGridX(false);
+        this.getDetectorCanvas().getCanvas("width").setGridY(false);
         
         for(int sector=1; sector <=6; sector++) {
             this.getDetectorCanvas().getCanvas("occupancy").getPad(sector-1).getAxisZ().setRange(0.01, max_occ);
@@ -141,6 +151,8 @@ public class DCmonitor extends DetectorMonitor {
             this.getDetectorCanvas().getCanvas("tdc2d").draw(this.getDataGroup().getItem(sector,0,0).getH2F("tdc_raw" + sector));
             this.getDetectorCanvas().getCanvas("multiplicity").cd(sector-1);
             this.getDetectorCanvas().getCanvas("multiplicity").draw(this.getDataGroup().getItem(sector,0,0).getH1F("multiplicity_sec"+ sector));
+            this.getDetectorCanvas().getCanvas("width").cd(sector-1);
+            this.getDetectorCanvas().getCanvas("width").draw(this.getDataGroup().getItem(sector,0,0).getH1F("width"+ sector));
             if(getActiveSector()==sector) {
                for(int sl=1; sl <=6; sl++) {
                    this.getDetectorCanvas().getCanvas("tdc1d").cd(sl-1);
@@ -155,6 +167,7 @@ public class DCmonitor extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("occupancyPercent").update();
         this.getDetectorCanvas().getCanvas("tdc2d").update();
         this.getDetectorCanvas().getCanvas("multiplicity").update();
+        this.getDetectorCanvas().getCanvas("width").update();
         
     }
 
@@ -172,6 +185,7 @@ public class DCmonitor extends DetectorMonitor {
                 int     layer = bank.getByte("layer",i);
                 int      wire = bank.getShort("component",i);
                 int       TDC = bank.getInt("TDC",i);
+                int     width = bank.getInt("width",i);
                 int    region = (int) (layer-1)/12+1;
                 int        sl = (int) (layer-1)/6+1;
                 
@@ -181,6 +195,7 @@ public class DCmonitor extends DetectorMonitor {
                 this.getDataGroup().getItem(sector,sl,0).getH1F("tdc_sl_raw" + sector+ sl).fill(TDC,layer*1.0);
                 //if(TDC > 0) this.getDetectorSummary().getH1F("summary").fill(sector*1.0);
                 if(TDC > 0) this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").fill(sector*1.0);
+                this.getDataGroup().getItem(sector,0,0).getH1F("width"+sector).fill(width);
                 
                 if(this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").getEntries()>0) {
                     this.getDetectorSummary().getH1F("summary").setBinContent(sector-1, 100*this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").getBinContent(sector-1)/this.getNumberOfEvents()/112/12/3);
