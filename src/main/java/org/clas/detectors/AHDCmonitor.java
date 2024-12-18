@@ -8,7 +8,6 @@ import org.jlab.groot.group.DataGroup;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
 
-// Felix : tmp
 import org.jlab.geom.detector.alert.AHDC.*;
 import org.jlab.geom.prim.Point3D;
 import org.jlab.geom.base.ConstantProvider;
@@ -22,19 +21,19 @@ import org.jlab.groot.math.Axis;
 
 public class AHDCmonitor  extends DetectorMonitor {
 	
-    AhdcView ahdc; ///< AHDC geometry, possibility to use method such as get{Sector, Superlayer, Layer, Component}   
-    //AlertDCDetector ahdc; ///< AHDC geometry, possibility to use method such as get{Sector, Superlayer, Layer, Component}
+    AlertDCDetector ahdc; ///< AHDC geometry, possibility to use method such as get{Sector, Superlayer, Layer, Component}
 
     public AHDCmonitor(String name) {
         super(name);
         
-        this.setDetectorTabNames("occupancy", "adc", "geom", "geom_bis");
+        this.setDetectorTabNames("occupancy", "adc", "geom");
         this.init(false);
 
-	//ahdc = new AhdcView();
-	//ahdc = new AhdcView().ahdc;
     }
-    { ahdc = new AhdcView(); }
+
+    {
+	    ahdc = new AlertDCFactory().createDetectorCLAS(new AhdcConstantProvider());
+    }
 
     @Override
     public void createHistos() {
@@ -52,10 +51,6 @@ public class AHDCmonitor  extends DetectorMonitor {
 	this.getDetectorCanvas().getCanvas("geom").divide(1, 1);
 	this.getDetectorCanvas().getCanvas("geom").setGridX(false);
 	this.getDetectorCanvas().getCanvas("geom").setGridY(false);
-	// tab : geom_bis
-	this.getDetectorCanvas().getCanvas("geom_bis").divide(1, 1);
-	this.getDetectorCanvas().getCanvas("geom_bis").setGridX(false);
-	this.getDetectorCanvas().getCanvas("geom_bis").setGridY(false);
 
 	// used in summary tab
         H1F summary = new H1F("summary","summary",6,1,7);
@@ -86,29 +81,20 @@ public class AHDCmonitor  extends DetectorMonitor {
         H2F time = new H2F("time", "time", 80, 0, 400, 8, 0.5, 8000.5);
         time.setTitleX("Time (ns)");
         time.setTitleY("Wire");
-        // used in geom tab
-	GraphErrors view2D = ahdc.graph2D;
-	view2D.setTitle("view2D");
-	view2D.setTitleX("x (mm)");
-	view2D.setTitleX("y (mm)");
-	view2D.setMarkerStyle(0);
-	view2D.setMarkerSize(7);
-	view2D.setMarkerColor(2);
-	// used in geom_bis tab
-	AhdcH2F hist2d_occ = new AhdcH2F("hist2d_occ",1000,-80,80,1000,-80,80); // occupancy
+	// used in geom tab
+	H2F hist2d_occ = new H2F("hist2d_occ",120,-80,80,120,-80,80); // occupancy
 	hist2d_occ.setTitle("hist2d_occ");
 	hist2d_occ.setTitleX("x (mm)");
 	hist2d_occ.setTitleY("y (mm)");
 
 	// add graph to DataGroup
-        DataGroup dg = new DataGroup(6,1); 
+        DataGroup dg = new DataGroup(5,1); 
         dg.addDataSet(rawADC, 0);
         dg.addDataSet(occADC, 0);
         dg.addDataSet(occADC1D, 1);
         dg.addDataSet(adc, 2);
         dg.addDataSet(time, 3);
-	dg.addDataSet(view2D, 4); // --> Felix
-	dg.addDataSet(hist2d_occ, 5);
+	dg.addDataSet(hist2d_occ, 4);
         this.getDataGroup().add(dg,0,0,0);
     }
         
@@ -133,13 +119,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 
 	this.getDetectorCanvas().getCanvas("geom").cd(0);
 	this.getDetectorCanvas().getCanvas("geom").getPad(0).getAxisZ().setLog(getLogZ());
-	this.getDetectorCanvas().getCanvas("geom").draw(this.getDataGroup().getItem(0,0,0).getGraph("view2D"));
+	this.getDetectorCanvas().getCanvas("geom").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ"));
 	this.getDetectorCanvas().getCanvas("geom").update();
-
-	this.getDetectorCanvas().getCanvas("geom_bis").cd(0);
-	this.getDetectorCanvas().getCanvas("geom_bis").getPad(0).getAxisZ().setLog(getLogZ());
-	this.getDetectorCanvas().getCanvas("geom_bis").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ"));
-	this.getDetectorCanvas().getCanvas("geom_bis").update();
         
         
         this.getDetectorView().getView().repaint();
@@ -176,7 +157,7 @@ public class AHDCmonitor  extends DetectorMonitor {
 		    int layerId = layer - superlayerId*10;
 		    int componentId = comp;
 		    // when using the getter methods, numerotations start at 0 !!!
-		    Point3D midpoint = ahdc.ahdc.getSector(sectorId-1).getSuperlayer(superlayerId-1).getLayer(layerId-1).getComponent(componentId-1).getMidpoint();
+		    Point3D midpoint = ahdc.getSector(sectorId-1).getSuperlayer(superlayerId-1).getLayer(layerId-1).getComponent(componentId-1).getMidpoint();
 		    this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ").fill(midpoint.x(),midpoint.y());
                     
                     
@@ -197,36 +178,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 
 }
 
-class AhdcView {
-	public AlertDCDetector ahdc;
-	public GraphErrors graph2D;
-	/** Default constructor */
-	AhdcView () {
-		//ahdc = new AlertDCFactory().createDetectorCLAS(new ConstantProvider());
-		ahdc = new AlertDCFactory().createDetectorCLAS(new AhdcConstantProvider());
-		// To use the method get***, the numerotation must start at 0 !!!
-		Point3D midpoint1 = ahdc.getSector(0).getSuperlayer(0).getLayer(0).getComponent(0).getMidpoint();
-		System.out.println("***********************  FELIX  *****************************");
-		System.out.println(">>>> TEST AHDC_VIEW");
-		System.out.println(midpoint1.toString());
-		System.out.println("********************** END FELIX  *****************************");
-	
-		// ************
-		graph2D = new GraphErrors("view2D");
-		for (int sectorId = 0; sectorId < ahdc.getNumSectors(); sectorId++){
-			for (int superlayerId = 0; superlayerId < ahdc.getSector(sectorId).getNumSuperlayers(); superlayerId++){
-				for (int layerId = 0; layerId < ahdc.getSector(sectorId).getSuperlayer(superlayerId).getNumLayers(); layerId++){
-					for (int wireId = 0; wireId < ahdc.getSector(sectorId).getSuperlayer(superlayerId).getLayer(layerId).getNumComponents(); wireId++){
-						Point3D midpoint = ahdc.getSector(sectorId).getSuperlayer(superlayerId).getLayer(layerId).getComponent(wireId).getMidpoint();
-						graph2D.addPoint(midpoint.x(), midpoint.y(), 0.0, 0.0);
-					}
-				}
-			}
-		}
-	}
-}
 
-/** Empty class : do nothing, useful for class AHDCview */
+/* Empty class : do nothing, useful to instanciate an AlertDCDetector object */
 class AhdcConstantProvider implements ConstantProvider {
 	public boolean hasConstant(String name) {return false;}
 	public int length(String name) {return 0;}
@@ -234,49 +187,3 @@ class AhdcConstantProvider implements ConstantProvider {
 	public int getInteger(String name, int row) {return 0;}
 }
 
-class AhdcH2F extends H2F {
-	private double radius; ///< AHDC wire radius for representation, must be <= 1
-	
-	/** Constructor */
-	public AhdcH2F(String name, int bx, double xmin, double xmax, int by, double ymin, double ymax) {
-		super(name,bx,xmin,xmax,by,ymin,ymax);
-		radius = 1;
-	}
-	
-	/** 
-	 * Main purpose of this class
-	 * 
-	 * x,y are the location of the sense wire determined
-	 * from sector, superlayer, layer, componenent ids
-	 * As the plane is discretised, we fill all the "rectangle"
-	 * comprised in the circle of center (x,y) and of radius this.radius
-	 * 
-	 */
-	@Override
-	public void fill(double x, double y) {
-		Axis xAxis = super.getXAxis();
-		Axis yAxis = super.getYAxis();
-		int binx = xAxis.getBin(x);
-		int biny = yAxis.getBin(y);
-		double xc = xAxis.getBinCenter(binx);
-		double yc = yAxis.getBinCenter(biny);
-		double deltax = xAxis.getBinWidth(binx);
-		double deltay = yAxis.getBinWidth(biny);	
-		int xRange = new Double(radius/deltax).intValue(); 
-		int yRange = new Double(radius/deltay).intValue();
-		for (int nx = -xRange; nx <= xRange; nx++) {
-			for (int ny = -yRange; ny <= yRange; ny++) {
-				double X = xc + nx*deltax;
-				double Y = yc + ny*deltay;
-				if (Math.sqrt((X-xc)*(X-xc)+(Y-yc)*(Y-yc)) < radius) {
-					super.fill(X,Y);
-				}
-			}
-		}
-	}
-	
-	/** This method must set just after the instanciation or before using the first fill() method */
-	public void SetWireRadius(double _radius){
-		radius = _radius;
-	}
-}
