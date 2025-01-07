@@ -98,7 +98,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 
         // process event info and save into data group
         if(event.hasBank("AHDC::adc")==true){
-	    DataBank bank = event.getBank("AHDC::adc");
+          System.out.println(" has AHDC bank!");
+          DataBank bank = event.getBank("AHDC::adc");
 	    int rows = bank.rows();
 	    for(int loop = 0; loop < rows; loop++){
                 int sector  = bank.getByte("sector", loop);
@@ -108,8 +109,8 @@ public class AHDCmonitor  extends DetectorMonitor {
                 int adc     = bank.getInt("ADC", loop);
                 float time  = bank.getFloat("time", loop);
                                
-//                System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
-//                      " ADC = " + adc + " TIME = " + time); 
+                System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
+                      " ADC = " + adc + " TIME = " + time); 
                 if(adc>=0 && time>0) {
                     int wire = (layer-1)*100+comp;
                     this.getDataGroup().getItem(0,0,0).getH2F("occADC").fill(comp, layer);

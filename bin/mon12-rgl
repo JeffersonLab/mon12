@@ -3,7 +3,12 @@
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 $dir/mon12 \
-    -tabs "AHDC:ATOF:BAND:CND:CTOF:DC:ECAL:FMT:FTOF:HTCC:LTCC:RICH:RF:HEL:Trigger:TimeJitter" \
-    -trigger 0x4081 \
+    -tabs "AHDC:ATOF:Trigger:TimeJitter"\
+    -trigger 0xFFFFFFFF \
+    -ethost clondaq7 \
+    -logbook hbalert \
+    -etip 129.57.167.20 \
+    -etsession /et/clastest7 \
     $*
 
+    #:BAND:CND:CTOF:DC:ECAL:FMT:FTOF:HTCC:LTCC:RICH:RF:HEL:Trigger:TimeJitter" 
