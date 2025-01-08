@@ -47,8 +47,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 	this.getDetectorCanvas().getCanvas("adc").divide(2, 1);
         this.getDetectorCanvas().getCanvas("adc").setGridX(false);
         this.getDetectorCanvas().getCanvas("adc").setGridY(false);
-	// tab : geom
-	this.getDetectorCanvas().getCanvas("geom").divide(1, 1);
+	// tab : geom // test !
+	this.getDetectorCanvas().getCanvas("geom").divide(2, 1);
 	this.getDetectorCanvas().getCanvas("geom").setGridX(false);
 	this.getDetectorCanvas().getCanvas("geom").setGridY(false);
 
@@ -83,18 +83,23 @@ public class AHDCmonitor  extends DetectorMonitor {
         time.setTitleY("Wire");
 	// used in geom tab
 	H2F hist2d_occ = new H2F("hist2d_occ",120,-80,80,120,-80,80); // occupancy
-	hist2d_occ.setTitle("hist2d_occ");
+	hist2d_occ.setTitle("ahdc geom view");
 	hist2d_occ.setTitleX("x (mm)");
 	hist2d_occ.setTitleY("y (mm)");
+	H2F hist2d_occ2 = new H2F("hist2d_occ2",100,1,100,8,1,9); // occupancy
+	hist2d_occ2.setTitle("direct view");
+	hist2d_occ2.setTitleX("wire id (1-99)");
+	hist2d_occ2.setTitleY("layer id (1-8)");
 
 	// add graph to DataGroup
-        DataGroup dg = new DataGroup(5,1); 
+        DataGroup dg = new DataGroup(6,1); 
         dg.addDataSet(rawADC, 0);
         dg.addDataSet(occADC, 0);
         dg.addDataSet(occADC1D, 1);
         dg.addDataSet(adc, 2);
         dg.addDataSet(time, 3);
 	dg.addDataSet(hist2d_occ, 4);
+	dg.addDataSet(hist2d_occ2, 5);
         this.getDataGroup().add(dg,0,0,0);
     }
         
@@ -122,6 +127,10 @@ public class AHDCmonitor  extends DetectorMonitor {
 	this.getDetectorCanvas().getCanvas("geom").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ"));
 	this.getDetectorCanvas().getCanvas("geom").update();
         
+	this.getDetectorCanvas().getCanvas("geom").cd(1);
+	this.getDetectorCanvas().getCanvas("geom").getPad(1).getAxisZ().setLog(getLogZ());
+	this.getDetectorCanvas().getCanvas("geom").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ2"));
+	this.getDetectorCanvas().getCanvas("geom").update();
         
         this.getDetectorView().getView().repaint();
         this.getDetectorView().update();
@@ -156,10 +165,41 @@ public class AHDCmonitor  extends DetectorMonitor {
 		    int superlayerId = layer/10;
 		    int layerId = layer - superlayerId*10;
 		    int componentId = comp;
+		    // simulate a missing wire
+		    //if ((layer == 1) && (componentId == 20)) {
+		    //	continue;
+		    //}
 		    // when using the getter methods, numerotations start at 0 !!!
 		    Point3D midpoint = ahdc.getSector(sectorId-1).getSuperlayer(superlayerId-1).getLayer(layerId-1).getComponent(componentId-1).getMidpoint();
 		    this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ").fill(midpoint.x(),midpoint.y());
-                    
+		    int layer_number = 0;
+		    switch (layer) {
+			case 11 :
+				layer_number = 1;
+				break;
+			case 21 :
+				layer_number = 2;
+				break;
+			case 22 :
+				layer_number = 3;
+				break;
+			case 31 :
+				layer_number = 4;
+				break;
+			case 32 :
+				layer_number = 5;
+				break;
+			case 41 :
+				layer_number = 6;
+				break;
+			case 42 :
+				layer_number = 7;
+				break;
+			case 51 :
+				layer_number = 8;
+				break;
+		    }
+		    this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ2").fill(componentId, layer_number);
                     
                 }
 	    }
