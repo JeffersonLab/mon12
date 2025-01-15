@@ -8,12 +8,6 @@ import org.jlab.groot.group.DataGroup;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
 
-import org.jlab.geom.detector.alert.AHDC.*;
-import org.jlab.geom.prim.Point3D;
-import org.jlab.geom.base.ConstantProvider;
-import org.jlab.groot.data.GraphErrors;
-import org.jlab.groot.math.Axis;
-
 /**
  *
  * @author devita
@@ -21,38 +15,28 @@ import org.jlab.groot.math.Axis;
 
 public class AHDCmonitor  extends DetectorMonitor {
 	
-    AlertDCDetector ahdc; ///< AHDC geometry, possibility to use method such as get{Sector, Superlayer, Layer, Component}
-
     public AHDCmonitor(String name) {
         super(name);
         
-        this.setDetectorTabNames("occupancy", "adc", "geom");
+        this.setDetectorTabNames("charge", "time");
         this.init(false);
 
-    }
-
-    {
-	    ahdc = new AlertDCFactory().createDetectorCLAS(new AhdcConstantProvider());
     }
 
     @Override
     public void createHistos() {
         // initialize canvas and create histograms
         this.setNumberOfEvents(0);
-        // tab : occupancy
-	this.getDetectorCanvas().getCanvas("occupancy").divide(1, 2);
-        this.getDetectorCanvas().getCanvas("occupancy").setGridX(false);
-        this.getDetectorCanvas().getCanvas("occupancy").setGridY(false);
-        // tab : adc
-	this.getDetectorCanvas().getCanvas("adc").divide(2, 1);
-        this.getDetectorCanvas().getCanvas("adc").setGridX(false);
-        this.getDetectorCanvas().getCanvas("adc").setGridY(false);
-	// tab : geom // test !
-	this.getDetectorCanvas().getCanvas("geom").divide(2, 1);
-	this.getDetectorCanvas().getCanvas("geom").setGridX(false);
-	this.getDetectorCanvas().getCanvas("geom").setGridY(false);
+	
+	this.getDetectorCanvas().getCanvas("charge").divide(1, 3);
+        this.getDetectorCanvas().getCanvas("charge").setGridX(false);
+        this.getDetectorCanvas().getCanvas("charge").setGridY(false);
+	
+	this.getDetectorCanvas().getCanvas("time").divide(1, 4);
+        this.getDetectorCanvas().getCanvas("time").setGridX(false);
+        this.getDetectorCanvas().getCanvas("time").setGridY(false);
 
-	// used in summary tab
+	// summary
         H1F summary = new H1F("summary","summary",6,1,7);
         summary.setTitleX("sector");
         summary.setTitleY("AHDC hits");
@@ -61,76 +45,84 @@ public class AHDCmonitor  extends DetectorMonitor {
         DataGroup sum = new DataGroup(1,1);
         sum.addDataSet(summary, 0);
         this.setDetectorSummary(sum);
-	// used in occupancy tab
-	H2F rawADC = new H2F("rawADC", "rawADC", 16, 0.5, 16.5, 80, 0.5, 80.5);
-        rawADC.setTitleY("component");
-        rawADC.setTitleX("layer");
-        H2F occADC = new H2F("occADC", "occADC", 16, 0.5, 16.5, 80, 0.5, 80.5);
-        occADC.setTitleY("component");
-        occADC.setTitleX("layer");
-        occADC.setTitle("ADC Occupancy");
-        H1F occADC1D = new H1F("occADC1D", "occADC1D", 5000, 0.5, 5000.5);
-        occADC1D.setTitleX("Wire");
-        occADC1D.setTitleY("Counts");
-        occADC1D.setTitle("ADC Occupancy");
-        occADC1D.setFillColor(3);
-        // used in adc tab
-        H2F adc = new H2F("adc", "adc", 150, 0, 15000, 8, 0.5, 8000.5);
-        adc.setTitleX("ADC - value");
-        adc.setTitleY("Wire");
-        H2F time = new H2F("time", "time", 80, 0, 400, 8, 0.5, 8000.5);
-        time.setTitleX("Time (ns)");
-        time.setTitleY("Wire");
-	// used in geom tab
-	H2F hist2d_occ = new H2F("hist2d_occ",120,-80,80,120,-80,80); // occupancy
-	hist2d_occ.setTitle("ahdc geom view");
-	hist2d_occ.setTitleX("x (mm)");
-	hist2d_occ.setTitleY("y (mm)");
-	H2F hist2d_occ2 = new H2F("hist2d_occ2",100,1,100,8,1,9); // occupancy
-	hist2d_occ2.setTitle("direct view");
-	hist2d_occ2.setTitleX("wire id (1-99)");
-	hist2d_occ2.setTitleY("layer id (1-8)");
-
+	
+	// charge
+	H2F hist2d_occupancy = new H2F("occupancy", "occupancy", 100, 1, 100, 8, 1, 9);
+        hist2d_occupancy.setTitleY("layer number");
+        hist2d_occupancy.setTitleX("wire number");
+	hist2d_occupancy.setTitle("< occupancy >");
+        
+	H2F hist2d_adcMax = new H2F("adcMax", "adcMax", 100, 1, 100, 8, 1, 9);
+        hist2d_adcMax.setTitleY("layer number");
+        hist2d_adcMax.setTitleX("wire number");
+	hist2d_adcMax.setTitle("< adcMax >");
+	
+	H2F hist2d_integral = new H2F("integral", "integral", 100, 1, 100, 8, 1, 9);
+        hist2d_integral.setTitleY("layer number");
+        hist2d_integral.setTitleX("wire number");
+	hist2d_integral.setTitle("< integral >");
+        
+	// time
+	H2F hist2d_timeMax = new H2F("timeMax", "timeMax", 100, 1, 100, 8, 1, 9);
+        hist2d_timeMax.setTitleY("layer number");
+        hist2d_timeMax.setTitleX("wire number");
+	hist2d_timeMax.setTitle("< timeMax >");
+        
+	H2F hist2d_leadingEdgeTime = new H2F("leadingEdgeTime", "leadingEdgeTime", 100, 1, 100, 8, 1, 9);
+        hist2d_leadingEdgeTime.setTitleY("layer number");
+        hist2d_leadingEdgeTime.setTitleX("wire number");
+	hist2d_leadingEdgeTime.setTitle("< leadingEdgeTime >");
+	
+	H2F hist2d_timeOverThreshold = new H2F("timeOverThreshold", "timeOverThreshold", 100, 1, 100, 8, 1, 9);
+        hist2d_timeOverThreshold.setTitleY("layer number");
+        hist2d_timeOverThreshold.setTitleX("wire number");
+	hist2d_timeOverThreshold.setTitle("< timeOverThreshold >");
+	
+	H2F hist2d_constantFractionTime = new H2F("constantFractionTime", "constantFractionTime", 100, 1, 100, 8, 1, 9);
+        hist2d_constantFractionTime.setTitleY("layer number");
+        hist2d_constantFractionTime.setTitleX("wire number");
+	hist2d_constantFractionTime.setTitle("< constantFractionTime >");
+	
 	// add graph to DataGroup
-        DataGroup dg = new DataGroup(6,1); 
-        dg.addDataSet(rawADC, 0);
-        dg.addDataSet(occADC, 0);
-        dg.addDataSet(occADC1D, 1);
-        dg.addDataSet(adc, 2);
-        dg.addDataSet(time, 3);
-	dg.addDataSet(hist2d_occ, 4);
-	dg.addDataSet(hist2d_occ2, 5);
+        DataGroup dg = new DataGroup(7,1); 
+        dg.addDataSet(hist2d_occupancy, 0);
+        dg.addDataSet(hist2d_adcMax, 1);
+        dg.addDataSet(hist2d_integral, 2);
+        dg.addDataSet(hist2d_timeMax, 3);
+        dg.addDataSet(hist2d_leadingEdgeTime, 4);
+	dg.addDataSet(hist2d_timeOverThreshold, 5);
+	dg.addDataSet(hist2d_constantFractionTime, 6);
         this.getDataGroup().add(dg,0,0,0);
     }
         
     @Override
     public void plotHistos() {
         // plotting histos
-        this.getDetectorCanvas().getCanvas("occupancy").cd(0);
-        this.getDetectorCanvas().getCanvas("occupancy").getPad(0).getAxisZ().setLog(getLogZ());
-        this.getDetectorCanvas().getCanvas("occupancy").draw(this.getDataGroup().getItem(0,0,0).getH2F("occADC"));
-        this.getDetectorCanvas().getCanvas("occupancy").cd(1);
-        this.getDetectorCanvas().getCanvas("occupancy").getPad(1).getAxisY().setLog(true);
-        this.getDetectorCanvas().getCanvas("occupancy").draw(this.getDataGroup().getItem(0,0,0).getH1F("occADC1D"));
-        this.getDetectorCanvas().getCanvas("occupancy").update();
+        this.getDetectorCanvas().getCanvas("charge").cd(0);
+        this.getDetectorCanvas().getCanvas("charge").getPad(0).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("occupancy"));
+        this.getDetectorCanvas().getCanvas("charge").cd(1);
+        this.getDetectorCanvas().getCanvas("charge").getPad(1).getAxisZ().setLog(true);
+        this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("adcMax"));
+        this.getDetectorCanvas().getCanvas("charge").cd(2);
+        this.getDetectorCanvas().getCanvas("charge").getPad(2).getAxisZ().setLog(true);
+        this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("integral"));
+	this.getDetectorCanvas().getCanvas("charge").update();
         
-        this.getDetectorCanvas().getCanvas("adc").cd(0);
-        this.getDetectorCanvas().getCanvas("adc").getPad(0).getAxisZ().setLog(getLogZ());
-        this.getDetectorCanvas().getCanvas("adc").draw(this.getDataGroup().getItem(0,0,0).getH2F("adc"));
-        this.getDetectorCanvas().getCanvas("adc").cd(1);
-        this.getDetectorCanvas().getCanvas("adc").getPad(0).getAxisZ().setLog(getLogZ());
-        this.getDetectorCanvas().getCanvas("adc").draw(this.getDataGroup().getItem(0,0,0).getH2F("time"));
-        this.getDetectorCanvas().getCanvas("adc").update();
+        this.getDetectorCanvas().getCanvas("time").cd(0);
+        this.getDetectorCanvas().getCanvas("time").getPad(0).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("timeMax"));
+        this.getDetectorCanvas().getCanvas("time").cd(1);
+        this.getDetectorCanvas().getCanvas("time").getPad(1).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime"));
+	this.getDetectorCanvas().getCanvas("time").cd(2);
+	this.getDetectorCanvas().getCanvas("time").getPad(2).getAxisZ().setLog(getLogZ());
+	this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold"));
+	this.getDetectorCanvas().getCanvas("time").cd(3);
+	this.getDetectorCanvas().getCanvas("time").getPad(3).getAxisZ().setLog(getLogZ());
+	this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime"));
+	this.getDetectorCanvas().getCanvas("time").update();
 
-	this.getDetectorCanvas().getCanvas("geom").cd(0);
-	this.getDetectorCanvas().getCanvas("geom").getPad(0).getAxisZ().setLog(getLogZ());
-	this.getDetectorCanvas().getCanvas("geom").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ"));
-	this.getDetectorCanvas().getCanvas("geom").update();
-        
-	this.getDetectorCanvas().getCanvas("geom").cd(1);
-	this.getDetectorCanvas().getCanvas("geom").getPad(1).getAxisZ().setLog(getLogZ());
-	this.getDetectorCanvas().getCanvas("geom").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ2"));
-	this.getDetectorCanvas().getCanvas("geom").update();
         
         this.getDetectorView().getView().repaint();
         this.getDetectorView().update();
@@ -138,9 +130,9 @@ public class AHDCmonitor  extends DetectorMonitor {
 
     @Override
     public void processEvent(DataEvent event) {
-
         // process event info and save into data group
         if(event.hasBank("AHDC::adc")==true){
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    HAs AHDC::adc event");
 	    DataBank bank = event.getBank("AHDC::adc");
 	    int rows = bank.rows();
 	    for(int loop = 0; loop < rows; loop++){
@@ -150,28 +142,17 @@ public class AHDCmonitor  extends DetectorMonitor {
                 int order   = bank.getByte("order", loop);
                 int adc     = bank.getInt("ADC", loop);
                 float time  = bank.getFloat("time", loop);
-                               
-//                System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
-//                      " ADC = " + adc + " TIME = " + time); 
+		float leadingEdgeTime = bank.getFloat("leadingEdgeTime", loop);
+		float timeOverThreshold = bank.getFloat("timeOverThreshold", loop);
+		float constantFractionTime = bank.getFloat("constantFractionTime", loop);
+		int integral = bank.getInt("integral", loop);
+                
+                System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
+                      " ADC = " + adc + " TIME = " + time + "leadingEdgeTime = " + leadingEdgeTime); 
                 if(adc>=0 && time>0) {
                     int wire = (layer-1)*100+comp;
-                    this.getDataGroup().getItem(0,0,0).getH2F("occADC").fill(comp, layer);
-                    this.getDataGroup().getItem(0,0,0).getH1F("occADC1D").fill(wire);
-                    this.getDataGroup().getItem(0,0,0).getH2F("adc").fill(adc*1.0,wire);
-                    this.getDataGroup().getItem(0,0,0).getH2F("time").fill(time,wire);
                     this.getDetectorSummary().getH1F("summary").fill(wire);
 		    
-		    int sectorId = sector;
-		    int superlayerId = layer/10;
-		    int layerId = layer - superlayerId*10;
-		    int componentId = comp;
-		    // simulate a missing wire
-		    //if ((layer == 1) && (componentId == 20)) {
-		    //	continue;
-		    //}
-		    // when using the getter methods, numerotations start at 0 !!!
-		    Point3D midpoint = ahdc.getSector(sectorId-1).getSuperlayer(superlayerId-1).getLayer(layerId-1).getComponent(componentId-1).getMidpoint();
-		    this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ").fill(midpoint.x(),midpoint.y());
 		    int layer_number = 0;
 		    switch (layer) {
 			case 11 :
@@ -199,7 +180,13 @@ public class AHDCmonitor  extends DetectorMonitor {
 				layer_number = 8;
 				break;
 		    }
-		    this.getDataGroup().getItem(0,0,0).getH2F("hist2d_occ2").fill(componentId, layer_number);
+		    this.getDataGroup().getItem(0,0,0).getH2F("occupancy").fill(comp, layer_number);
+		    this.getDataGroup().getItem(0,0,0).getH2F("adcMax").fill(comp, layer_number, adc);
+		    this.getDataGroup().getItem(0,0,0).getH2F("integral").fill(comp, layer_number, integral);
+		    this.getDataGroup().getItem(0,0,0).getH2F("timeMax").fill(comp, layer_number, time);
+		    this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").fill(comp, layer_number, leadingEdgeTime);
+		    this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").fill(comp, layer_number, timeOverThreshold);
+		    this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").fill(comp, layer_number, constantFractionTime);
                     
                 }
 	    }
@@ -216,14 +203,5 @@ public class AHDCmonitor  extends DetectorMonitor {
         }
     }
 
-}
-
-
-/* Empty class : do nothing, useful to instanciate an AlertDCDetector object */
-class AhdcConstantProvider implements ConstantProvider {
-	public boolean hasConstant(String name) {return false;}
-	public int length(String name) {return 0;}
-	public double getDouble(String name, int row) {return 0.0;}
-	public int getInteger(String name, int row) {return 0;}
 }
 
