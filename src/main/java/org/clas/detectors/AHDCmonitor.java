@@ -132,7 +132,6 @@ public class AHDCmonitor  extends DetectorMonitor {
     public void processEvent(DataEvent event) {
         // process event info and save into data group
         if(event.hasBank("AHDC::adc")==true){
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>    HAs AHDC::adc event");
 	    DataBank bank = event.getBank("AHDC::adc");
 	    int rows = bank.rows();
 	    for(int loop = 0; loop < rows; loop++){
@@ -147,8 +146,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 		float constantFractionTime = bank.getFloat("constantFractionTime", loop);
 		int integral = bank.getInt("integral", loop);
                 
-                System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
-                      " ADC = " + adc + " TIME = " + time + "leadingEdgeTime = " + leadingEdgeTime); 
+                //System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
+                //      " ADC = " + adc + " TIME = " + time + "leadingEdgeTime = " + leadingEdgeTime); 
                 if(adc>=0 && time>0) {
                     int wire = (layer-1)*100+comp;
                     this.getDetectorSummary().getH1F("summary").fill(wire);
@@ -180,14 +179,27 @@ public class AHDCmonitor  extends DetectorMonitor {
 				layer_number = 8;
 				break;
 		    }
+		    int binBuffer = this.getDataGroup().getItem(0,0,0).getH2F("occupancy").findBin(comp, layer_number); // it is the same for all histograms
+		    
 		    this.getDataGroup().getItem(0,0,0).getH2F("occupancy").fill(comp, layer_number);
-		    this.getDataGroup().getItem(0,0,0).getH2F("adcMax").fill(comp, layer_number, adc);
-		    this.getDataGroup().getItem(0,0,0).getH2F("integral").fill(comp, layer_number, integral);
-		    this.getDataGroup().getItem(0,0,0).getH2F("timeMax").fill(comp, layer_number, time);
-		    this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").fill(comp, layer_number, leadingEdgeTime);
-		    this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").fill(comp, layer_number, timeOverThreshold);
-		    this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").fill(comp, layer_number, constantFractionTime);
+		    
+		    // replace "adc, integra, time, ..." with the mean values (e.g : (prev_data*prev_occ + new_data)/(prev_occ+1)
+		    // prev_data : getDataBufferBin(...) on hist2d_data and hist2d_occ
+		    // cf : groot/data/Hist2F
+		    // 
+		    this.getDataGroup().getItem(0,0,0).getH2F("adcMax").setDataBufferBin(binBuffer, adc);
+		    this.getDataGroup().getItem(0,0,0).getH2F("integral").setDataBufferBin(binBuffer, integral);
+		    this.getDataGroup().getItem(0,0,0).getH2F("timeMax").setDataBufferBin(binBuffer, time);
+		    this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").setDataBufferBin(binBuffer, leadingEdgeTime);
+		    this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").setDataBufferBin(binBuffer, timeOverThreshold);
+		    this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").setDataBufferBin(binBuffer, constantFractionTime);
                     
+		    //this.getDataGroup().getItem(0,0,0).getH2F("adcMax").fill(comp, layer_number, adc);
+		    //this.getDataGroup().getItem(0,0,0).getH2F("integral").fill(comp, layer_number, integral);
+		    //this.getDataGroup().getItem(0,0,0).getH2F("timeMax").fill(comp, layer_number, time);
+		    //this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").fill(comp, layer_number, leadingEdgeTime);
+		    //this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").fill(comp, layer_number, timeOverThreshold);
+		    //this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").fill(comp, layer_number, constantFractionTime);
                 }
 	    }
     	}
@@ -195,12 +207,12 @@ public class AHDCmonitor  extends DetectorMonitor {
 
     @Override
     public void analysisUpdate() {
-        if(this.getNumberOfEvents()>0) {
+        /*if(this.getNumberOfEvents()>0) {
             H2F raw = this.getDataGroup().getItem(0,0,0).getH2F("rawADC");
             for(int loop = 0; loop < raw.getDataBufferSize(); loop++){
                 this.getDataGroup().getItem(0,0,0).getH2F("occADC").setDataBufferBin(loop,100*raw.getDataBufferBin(loop)/this.getNumberOfEvents());
             }
-        }
+        }*/
     }
 
 }
