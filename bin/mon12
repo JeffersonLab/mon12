@@ -8,6 +8,8 @@ then
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
    echo "! \$CLAS12DIR undefined, assuming COATJAVA is at $CLAS12DIR !"
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+else
+   echo "CLAS12DIR is defined as $CLAS12DIR"
 fi
 
 # find the mon12 jar:

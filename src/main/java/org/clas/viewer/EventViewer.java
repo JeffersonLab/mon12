@@ -591,7 +591,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             if (header != null) dump.write(header);
             if (trigger != null) dump.write(trigger);
             if (helicity != null) dump.write(helicity);
-            hipo = new HipoDataEvent(dump, this.schemaFactory);
+            this.clasDecoder.extractPulses(dump);  // Apply AHDC Decoder !!!
+	    hipo = new HipoDataEvent(dump, this.schemaFactory);
         }
 
         // store values for this event:
