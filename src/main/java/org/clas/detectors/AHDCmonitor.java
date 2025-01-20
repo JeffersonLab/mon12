@@ -186,13 +186,22 @@ public class AHDCmonitor  extends DetectorMonitor {
 		    // replace "adc, integra, time, ..." with the mean values (e.g : (prev_data*prev_occ + new_data)/(prev_occ+1)
 		    // prev_data : getDataBufferBin(...) on hist2d_data and hist2d_occ
 		    // cf : groot/data/Hist2F
-		    // 
-		    this.getDataGroup().getItem(0,0,0).getH2F("adcMax").setDataBufferBin(binBuffer, adc);
-		    this.getDataGroup().getItem(0,0,0).getH2F("integral").setDataBufferBin(binBuffer, integral);
-		    this.getDataGroup().getItem(0,0,0).getH2F("timeMax").setDataBufferBin(binBuffer, time);
-		    this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").setDataBufferBin(binBuffer, leadingEdgeTime);
-		    this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").setDataBufferBin(binBuffer, timeOverThreshold);
-		    this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").setDataBufferBin(binBuffer, constantFractionTime);
+
+		    // previous mean values
+		    float mean_adc = this.getDataGroup().getItem(0,0,0).getH2F("adcMax").getDataBufferBin(binBuffer);
+		    float mean_integral = this.getDataGroup().getItem(0,0,0).getH2F("integral").getDataBufferBin(binBuffer);
+		    float mean_time = this.getDataGroup().getItem(0,0,0).getH2F("timeMax").getDataBufferBin(binBuffer);
+		    float mean_leadingEdgeTime = this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").getDataBufferBin(binBuffer);
+		    float mean_timeOverThreshold = this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").getDataBufferBin(binBuffer);
+		    float mean_constantFractionTime = this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").getDataBufferBin(binBuffer);
+		    // new mean values
+		    int occ = (int) this.getDataGroup().getItem(0,0,0).getH2F("occupancy").getDataBufferBin(binBuffer) - 1;
+		    this.getDataGroup().getItem(0,0,0).getH2F("adcMax").setDataBufferBin(binBuffer, (mean_adc*occ + adc)/(occ+1));
+		    this.getDataGroup().getItem(0,0,0).getH2F("integral").setDataBufferBin(binBuffer, (mean_integral*occ + integral)/(occ+1));
+		    this.getDataGroup().getItem(0,0,0).getH2F("timeMax").setDataBufferBin(binBuffer, (mean_time*occ + time)/(occ+1));
+		    this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").setDataBufferBin(binBuffer, (mean_leadingEdgeTime*occ + leadingEdgeTime)/(occ+1));
+		    this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").setDataBufferBin(binBuffer, (mean_timeOverThreshold*occ + timeOverThreshold)/(occ+1));
+		    this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").setDataBufferBin(binBuffer, (mean_constantFractionTime*occ + constantFractionTime)/(occ+1));
                     
 		    //this.getDataGroup().getItem(0,0,0).getH2F("adcMax").fill(comp, layer_number, adc);
 		    //this.getDataGroup().getItem(0,0,0).getH2F("integral").fill(comp, layer_number, integral);
