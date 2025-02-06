@@ -735,8 +735,10 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         if(this.CLAS12Canvas!=null && this.CLAS12Canvas.getCanvas("ALERT")!=null) {
             // AHDC
             this.CLAS12Canvas.getCanvas("ALERT").cd(0);
-            if(this.monitors.get("AHDC").isActive() && this.monitors.get("AHDC").getDetectorSummary()!=null) 
-                this.CLAS12Canvas.getCanvas("ALERT").draw(this.monitors.get("AHDC").getDetectorSummary().getH1F("summary"));
+            if(this.monitors.get("AHDC").isActive() && this.monitors.get("AHDC").getDetectorSummary()!=null) {
+		this.CLAS12Canvas.getCanvas("ALERT").getPad(0).getAxisZ().setLog(this.monitors.get("AHDC").getLogZ());
+                this.CLAS12Canvas.getCanvas("ALERT").draw(this.monitors.get("AHDC").getDetectorSummary().getH2F("summary"));
+            }
             // ATOF
             this.CLAS12Canvas.getCanvas("ALERT").cd(1);
             if(this.monitors.get("ATOF").isActive() && this.monitors.get("ATOF").getDetectorSummary()!=null) 

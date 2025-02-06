@@ -37,11 +37,11 @@ public class AHDCmonitor  extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("time").setGridY(false);
 
 	// summary
-        H1F summary = new H1F("summary","summary",6,1,7);
-        summary.setTitleX("sector");
-        summary.setTitleY("AHDC hits");
-        summary.setTitle("AHDC");
-        summary.setFillColor(36);
+        H2F summary = new H2F("summary","summary", 100, 1, 100, 8, 1, 9);
+        summary.setTitleX("wire number");
+        summary.setTitleY("layer number");
+        summary.setTitle("AHDC (occupancy)");
+        //summary.setFillColor(36);
         DataGroup sum = new DataGroup(1,1);
         sum.addDataSet(summary, 0);
         this.setDetectorSummary(sum);
@@ -51,7 +51,7 @@ public class AHDCmonitor  extends DetectorMonitor {
         hist2d_occupancy.setTitleY("layer number");
         hist2d_occupancy.setTitleX("wire number");
 	hist2d_occupancy.setTitle("< occupancy >");
-        
+
 	H2F hist2d_adcMax = new H2F("adcMax", "adcMax", 100, 1, 100, 8, 1, 9);
         hist2d_adcMax.setTitleY("layer number");
         hist2d_adcMax.setTitleX("wire number");
@@ -123,7 +123,6 @@ public class AHDCmonitor  extends DetectorMonitor {
 	this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime"));
 	this.getDetectorCanvas().getCanvas("time").update();
 
-        
         this.getDetectorView().getView().repaint();
         this.getDetectorView().update();
     }
@@ -149,8 +148,8 @@ public class AHDCmonitor  extends DetectorMonitor {
                 //System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
                 //      " ADC = " + adc + " TIME = " + time + "leadingEdgeTime = " + leadingEdgeTime); 
                 if(adc>=0 && time>0) {
-                    int wire = (layer-1)*100+comp;
-                    this.getDetectorSummary().getH1F("summary").fill(wire);
+                    //int wire = (layer-1)*100+comp;
+                    //this.getDetectorSummary().getH1F("summary").fill(wire);
 		    
 		    int layer_number = 0;
 		    switch (layer) {
@@ -182,7 +181,7 @@ public class AHDCmonitor  extends DetectorMonitor {
 		    int binBuffer = this.getDataGroup().getItem(0,0,0).getH2F("occupancy").findBin(comp, layer_number); // it is the same for all histograms
 		    
 		    this.getDataGroup().getItem(0,0,0).getH2F("occupancy").fill(comp, layer_number);
-		    
+		    this.getDetectorSummary().getH2F("summary").fill(comp, layer_number);
 		    // replace "adc, integra, time, ..." with the mean values (e.g : (prev_data*prev_occ + new_data)/(prev_occ+1)
 		    // prev_data : getDataBufferBin(...) on hist2d_data and hist2d_occ
 		    // cf : groot/data/Hist2F
