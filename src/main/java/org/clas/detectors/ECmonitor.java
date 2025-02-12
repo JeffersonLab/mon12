@@ -10,7 +10,6 @@ import org.jlab.groot.group.DataGroup;
 import org.jlab.groot.math.F1D;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
-import org.jlab.utils.groups.IndexedTable;
 
 
 public class ECmonitor  extends DetectorMonitor {
@@ -25,13 +24,14 @@ public class ECmonitor  extends DetectorMonitor {
 //        this.setDetectorTabNames("adcOccupancy","tdcOccupancy", "adcSum", "adcEnergy_s", "adcTime_s", "tdc_s");
         this.setDetectorTabNames("adcOccupancy","tdcOccupancy", "adcEnergy_s", "adcTime_s", "tdc_s");
         this.useSectorButtons(true);
-        this.init(false);
         this.getCcdb().init(Arrays.asList(new String[]{"/calibration/ec/time_jitter"}));
+        this.init(false);
     }
 
     @Override
     public void createHistos() {
         // initialize canvas and create histograms
+        this.setJitter("/calibration/ec/time_jitter");
         this.setNumberOfEvents(0);
         this.getDetectorCanvas().getCanvas("adcOccupancy").divide(3, 3);
         this.getDetectorCanvas().getCanvas("adcOccupancy").setGridX(false);
@@ -187,20 +187,7 @@ public class ECmonitor  extends DetectorMonitor {
     @Override
     public void processEvent(DataEvent event) {
         
-        int triggerPhase=0;
-        if(event.hasBank("RUN::config")) {
-            DataBank bank = event.getBank("RUN::config");
-            int runNumber  = bank.getInt("run", 0);
-            long timestamp = bank.getLong("timestamp",0);    
-            IndexedTable jitter = this.getCcdb().getConstants(runNumber, "/calibration/ec/time_jitter");
-            this.period  = jitter.getDoubleValue("period",0,0,0);
-            this.phase   = jitter.getIntValue("phase",0,0,0);
-            this.ncycles = jitter.getIntValue("cycles",0,0,0);           
-//            System.out.println(period + phase + ncycles + " " + timestamp + " " + triggerPhase0);
-            if(ncycles>0){
-                triggerPhase  = (int) ((timestamp+phase)%ncycles); // TI derived phase correction due to TDC and FADC clock differences
-            }
-        }
+        double tJitter= this.getJitter();
 
         double[] pcsum = new double[6];
         double[] ecsum = new double[6];
@@ -245,7 +232,7 @@ public class ECmonitor  extends DetectorMonitor {
                 int     order = bank.getByte("order",i); 
                 if(TDC>0) {
                     this.getDataGroup().getItem(0,layer,0).getH2F("occTDC"+layer).fill(sector*1.0, comp*1.0);
-                    this.getDataGroup().getItem(sector,layer,0).getH2F("datTDC"+layer+sector).fill(TDC*this.tdcconv-triggerPhase*this.period,comp*1.0);
+                    this.getDataGroup().getItem(sector,layer,0).getH2F("datTDC"+layer+sector).fill(TDC*this.tdcconv-tJitter,comp*1.0);
                 }
 //                if(layer==1)      this.getDetectorSummary().getH1F("sumPCAL").fill(sector*1.0);
 //                else if (layer==2)this.getDetectorSummary().getH1F("sumECin").fill(sector*1.0);

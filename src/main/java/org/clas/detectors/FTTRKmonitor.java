@@ -28,8 +28,6 @@ public class FTTRKmonitor extends DetectorMonitor {
     public FTTRKmonitor(String name) {
         super(name);
 
-        this.loadConstantsFromCCDB(defaultRunNumber);
-
         this.setDetectorTabNames("occupancy2d", "occupancy1d", "tmax", "adc");
         this.init(false);
     }
@@ -55,7 +53,8 @@ public class FTTRKmonitor extends DetectorMonitor {
     public void createHistos() {
         // initialize canvas and create histograms
         this.setNumberOfEvents(0);
-
+        this.loadConstantsFromCCDB(runNumber);
+        
         H1F summary = new H1F("summary", "summary", nstrip * nlayer, 0.5, nstrip * nlayer + 0.5);
         summary.setTitleX("channel");
         summary.setTitleY("FTTRK hits");
@@ -142,20 +141,6 @@ public class FTTRKmonitor extends DetectorMonitor {
 
     @Override
     public void processEvent(DataEvent event) {
-
-        if (this.runNumber == 0) {
-            int numberOfEvents = this.getNumberOfEvents();
-            if (event.hasBank("RUN::config")) {
-                DataBank head = event.getBank("RUN::config");
-                runNumber = head.getInt("run", 0);
-            } else {
-                runNumber = 2284;
-            }
-            this.loadConstantsFromCCDB(runNumber);
-            this.createHistos();
-            this.plotHistos();
-            this.setNumberOfEvents(numberOfEvents); //Cause number of events got reset
-        }
 
         // process event info and save into data group
         if (event.hasBank("FTTRK::adc") == true) {

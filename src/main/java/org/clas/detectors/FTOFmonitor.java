@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.jlab.utils.groups.IndexedList.IndexGenerator;
 import java.util.Map;
-import org.jlab.utils.groups.IndexedTable;
 
 public class FTOFmonitor  extends DetectorMonitor {
 
@@ -28,17 +27,18 @@ public class FTOFmonitor  extends DetectorMonitor {
         
         this.setDetectorTabNames("adcOccupancy", "tdcOccupancy","adcEnergy_s", "adcTime_s", "tdc_s");
         this.useSectorButtons(true);
-        this.init(false);   // set to true for picture on left side
         ftofHits[0] = new FTOFHits("PANEL1A");
         ftofHits[1] = new FTOFHits("PANEL1B");
         ftofHits[2] = new FTOFHits("PANEL2");
         this.getCcdb().init(Arrays.asList(new String[]{"/calibration/ftof/time_jitter"}));
+        this.init(false);   // set to true for picture on left side
     }
 
     @Override
     public void createHistos() {
         // initialize canvas and create histograms
         this.setNumberOfEvents(0);
+        this.setJitter("/calibration/ftof/time_jitter");
         this.getDetectorCanvas().getCanvas("adcOccupancy").divide(2, 3);
         this.getDetectorCanvas().getCanvas("adcOccupancy").setGridX(false);
         this.getDetectorCanvas().getCanvas("adcOccupancy").setGridY(false);
@@ -216,20 +216,7 @@ public class FTOFmonitor  extends DetectorMonitor {
 	    clear(0); clear(1); clear(2); ttdcs.clear(); fadcs.clear(); ftdcs.clear(); ftpmt.clear() ; fapmt.clear();    	
 
 	            
-        int triggerPhase=0;
-        if(event.hasBank("RUN::config")) {
-            DataBank bank = event.getBank("RUN::config");
-            int runNumber  = bank.getInt("run", 0);
-            long timestamp = bank.getLong("timestamp",0);    
-            IndexedTable jitter = this.getCcdb().getConstants(runNumber, "/calibration/ftof/time_jitter");
-            this.period  = jitter.getDoubleValue("period",0,0,0);
-            this.phase   = jitter.getIntValue("phase",0,0,0);
-            this.ncycles = jitter.getIntValue("cycles",0,0,0);           
-//            System.out.println(period + phase + ncycles + " " + timestamp + " " + triggerPhase0);
-            if(ncycles>0){
-                triggerPhase  = (int) ((timestamp+phase)%ncycles); // TI derived phase correction due to TDC and FADC clock differences
-            }
-        }
+        double tJitter=this.getJitter();
         
         if(event.hasBank("FTOF::tdc")==true){
             DataBank  bank = event.getBank("FTOF::tdc");
@@ -239,7 +226,7 @@ public class FTOFmonitor  extends DetectorMonitor {
                 int  lr = bank.getByte("order",i);                       
                 int  ip = bank.getShort("component",i);
                 
-                float    tdcd = (float) (bank.getInt("TDC",i)*this.tdcconv-triggerPhase*this.period);
+                float    tdcd = (float) (bank.getInt("TDC",i)*this.tdcconv-tJitter);
                 
                 int lay=il-1; int ord=lr-2;
                 if(tdcd>0) {               	

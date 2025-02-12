@@ -8,7 +8,6 @@ import org.jlab.groot.data.H2F;
 import org.jlab.groot.group.DataGroup;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
-import org.jlab.utils.groups.IndexedTable;
 
 /**
  *
@@ -23,13 +22,15 @@ public class HTCCmonitor  extends DetectorMonitor {
         super(name);
         
         this.setDetectorTabNames("occupancy", "adcEnergy", "adcTime", "deltaRF");
-        this.init(false);
         this.getCcdb().init(Arrays.asList(new String[]{"/calibration/eb/rf/config","/calibration/eb/rf/jitter"}));
+        this.init(false);
     }
 
     @Override
     public void createHistos() {
         // initialize canvas and create histograms
+        this.setJitter("/calibration/eb/rf/jitter");
+        this.setRF();
         this.setNumberOfEvents(0);
         this.getDetectorCanvas().getCanvas("occupancy").divide(1, 2);
         this.getDetectorCanvas().getCanvas("occupancy").setGridX(false);
@@ -226,20 +227,9 @@ public class HTCCmonitor  extends DetectorMonitor {
     public void processEvent(DataEvent event) {
 
         // get rf period
-        double tjitter = 0;
-        if(event.hasBank("RUN::config")) {
-            DataBank config = event.getBank("RUN::config");
-            int  run       = config.getInt("run", 0);
-            long timestamp = config.getLong("timestamp",0);    
-            IndexedTable ctable = this.getCcdb().getConstants(run, "/calibration/eb/rf/config");
-            IndexedTable jtable = this.getCcdb().getConstants(run, "/calibration/eb/rf/jitter");
-            this.rfbucket = ctable.getDoubleValue("clock", 1, 1, 1);
-            this.tdcconv = ctable.getDoubleValue("tdc2time", 1, 1, 1);
-            this.period  = jtable.getDoubleValue("period",0,0,0);
-            this.phase   = jtable.getIntValue("phase",0,0,0);
-            this.ncycles = jtable.getIntValue("cycles",0,0,0);
-            tjitter = ((timestamp + phase) % ncycles) * period; 
-        }
+        double tjitter = this.getJitter();
+ 
+
         // process event info and save into data group
         if(event.hasBank("HTCC::adc")==true){
 	    DataBank bank = event.getBank("HTCC::adc");

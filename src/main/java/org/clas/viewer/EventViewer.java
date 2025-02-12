@@ -79,7 +79,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
 
     private int canvasUpdateTime = 2000;
     private final int analysisUpdateTime = 100;
-    private int runNumber = 1;
+    private int runNumber = 2284;
     private int ccdbRunNumber = 0;
     private int eventCounter = 0;
     private int histoResetEvents = 0;
@@ -548,16 +548,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         return bank != null ? bank.getInt("event", 0): this.eventCounter;
     }
 
-    private int getRunNumber(DataEvent event) {
-        DataBank bank = event.getBank("RUN::config");
-        return bank != null ? bank.getInt("run",0) : this.runNumber; 
-    }
-
-    public long getTriggerWord(DataEvent event) {    	
-        DataBank bank = event.getBank("RUN::config");	        
-        return bank != null ? bank.getLong("trigger", 0) : 0;
-    } 
-
     private void copyHitList(String k, String mon1, String mon2) {
     	if (k == null ? mon1 != null : !k.equals(mon1)) return;
     	this.monitors.get(mon1).ttdcs = this.monitors.get(mon2).ttdcs;
@@ -594,21 +584,42 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             this.clasDecoder.extractPulses(dump);  // Apply AHDC Decoder !!!
 	    hipo = new HipoDataEvent(dump, this.schemaFactory);
         }
-
-        // store values for this event:
-        final long eventTriggerWord = this.getTriggerWord(hipo);
-        final int eventRunNumber = this.getRunNumber(hipo);
         
-        // if run number is valid and changes, automatically reset histograms:
-        if (eventRunNumber != this.runNumber && eventRunNumber > 1) {
-            System.out.println("\nZeroing event counter and setting run number to: " + eventRunNumber + "\n");
+        // if header bank is missing, do nothing
+        if(!hipo.hasBank("RUN::config")) {
+            return;
+        }
+        DataBank config = hipo.getBank("RUN::config");
+        int run  = config.getInt("run", 0);
+        int ev   = config.getInt("event", 0);
+        long tg  = config.getLong("trigger", 0);
+        long ts  = config.getLong("timestamp", 0);
+        
+        // if run number is invalid, do nothibg
+        if(run<1) {
+            return;
+        }
+
+        // propagate header information
+        for(String key : monitors.keySet()) {
+            if(this.monitors.get(key).isActive()) {
+                this.monitors.get(key).setRunNumber(run);
+                this.monitors.get(key).setEventNumber(ev);
+                this.monitors.get(key).setTriggerWord(tg);
+                this.monitors.get(key).setTimeStamp(ts);
+            }
+        } 
+
+        // if run number changes, reset monitors
+        if(run!=this.runNumber) {
+            System.out.println("\nSetting run number to: " + run + "\n");
             this.resetEventListener();
-            this.runNumber = eventRunNumber;
+            this.runNumber = run;
             this.clas12Textinfo.setText("\nrun number: " + this.runNumber + "\n");
         }
 
         // only count events if the trigger mask is satisfied:
-        if ((eventTriggerWord & this.triggerMask) != 0L) this.eventCounter++;
+        if ((tg & this.triggerMask) != 0L) this.eventCounter++;
 
         // periodically, automatically reset histograms and save images:
         if (this.histoResetEvents > 0 && this.eventCounter > this.histoResetEvents) {
@@ -619,8 +630,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         // finally, fill the histograms:
         for (String key : monitors.keySet()) {
             if (this.monitors.get(key).isActive()) {
-                this.monitors.get(key).setTriggerWord(eventTriggerWord);
-                copyHitList(key, "Trigger", "FTOF");
+                 copyHitList(key, "Trigger", "FTOF");
                 this.monitors.get(key).dataEventAction(hipo);
             }
         }
@@ -833,7 +843,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
             else {JOptionPane.showMessageDialog(null, "Value must be a positive number!");}   
         }
     }
-
+    
     private void setRunNumber(String actionCommand) {
         System.out.println("Set run number for CCDB access");
         String runNumber = (String) JOptionPane.showInputDialog(null, "Set run number to ", " ", JOptionPane.PLAIN_MESSAGE, null, null, "2284");
@@ -859,6 +869,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
     
     @Override
     public void timerUpdate() {
+        this.initLoggers();
         for(String key : monitors.keySet()) {
             if(this.monitors.get(key).isActive()) 
                 this.monitors.get(key).timerUpdate();
@@ -877,6 +888,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         parser.addOption("-trigger",  "0xFFFFFFFF",     "Select trigger bits");
         parser.addOption("-ethost",   "clondaq6",       "Select ET host name");
         parser.addOption("-etip",     "129.57.167.60",  "Select ET host name");
+        parser.addOption("-etsession","/et/clasprod",  "DAQ session, usually clasprod or clastest7");
         parser.addOption("-autosave", "-1",             "Autosave every N events (e.g. for Hydra)");
         parser.addOption("-batch",    "0",              "Connect and run automatically");
         parser.addOption("-outDir",   null,             "Path for output PNG/HIPO files");
@@ -968,7 +980,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         else if (parser.getOption("-batch").intValue() != 0) {
             String h = parser.getOption("-ethost").stringValue();
             String i = parser.getOption("-etip").stringValue();
-            viewer.processorPane.connectAndRun(i,"11111","/et/clasprod");
+            String ses = parser.getOption("-etsession").stringValue();
+            viewer.processorPane.connectAndRun(i,"11111",ses);
         }
 
     }

@@ -88,15 +88,8 @@ public class RASTERmonitor extends DetectorMonitor {
     public void processEvent(DataEvent event) {
                 
         // process event info and save into data group
-        IndexedTable adc2position = null;
-        if(event.hasBank("RUN::config")) {
-            DataBank bank = event.getBank("RUN::config");
-            int runNumber = bank.getInt("run", 0);
-            adc2position  = this.getCcdb().getConstants(runNumber, "/calibration/raster/adc_to_position");
-        }
-        else {
-            return;
-        }
+        IndexedTable adc2position = this.getCcdb().getConstants(runNumber, "/calibration/raster/adc_to_position");
+        
         double rasterX = -999;
         double rasterY = -999;
         if(event.hasBank("RASTER::adc") && adc2position!=null) {

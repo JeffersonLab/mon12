@@ -145,7 +145,8 @@ public class AHDCmonitor  extends DetectorMonitor {
     public void processEvent(DataEvent event) {
         // process event info and save into data group
         if(event.hasBank("AHDC::adc")==true){
-	    DataBank bank = event.getBank("AHDC::adc");
+          //System.out.println(" has AHDC bank!");
+          DataBank bank = event.getBank("AHDC::adc");
 	    int rows = bank.rows();
 	    for(int loop = 0; loop < rows; loop++){
                 int sector  = bank.getByte("sector", loop);
