@@ -3,6 +3,9 @@ package org.clas.detectors;
 import org.clas.viewer.DetectorMonitor;
 import org.jlab.groot.data.H1F;
 import org.jlab.groot.data.H2F;
+import org.jlab.groot.graphics.EmbeddedCanvas;
+import org.jlab.groot.graphics.EmbeddedCanvasTabbed;
+
 import org.jlab.groot.group.DataGroup;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
@@ -25,7 +28,7 @@ public class ATOFmonitor extends DetectorMonitor {
   public ATOFmonitor(String name) {
     super(name);
     // Add new tabs: "WedgeTDC", "BarTDC", "BarSumDiff"
-    this.setDetectorTabNames("module","globalwedge", "occupancy", "WedgeScalers", "BarScalers", "WedgeTDC", "BarTDC", "BarSumDiff");
+    this.setDetectorTabNames("Module","Global Wedge", "Occupancy", "Wedge Hits", "Bar Hits", "Wedge TDCs", "Bar TDCs", "Bar Sum and Diff");
     this.init(false);
 
     // Initialize temporary storage maps
@@ -39,49 +42,44 @@ public class ATOFmonitor extends DetectorMonitor {
     this.setNumberOfEvents(0);
 
     // Module Canvas
-    this.getDetectorCanvas().getCanvas("module").divide(1, 2);
-    this.getDetectorCanvas().getCanvas("module").setGridX(false);
-    this.getDetectorCanvas().getCanvas("module").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Module").divide(1, 3);
+    this.getDetectorCanvas().getCanvas("Module").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Module").setGridY(false);
 
     // Module Canvas
-    this.getDetectorCanvas().getCanvas("globalwedge").divide(1, 3);
-    this.getDetectorCanvas().getCanvas("globalwedge").setGridX(false);
-    this.getDetectorCanvas().getCanvas("globalwedge").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Global Wedge").divide(1, 3);
+    this.getDetectorCanvas().getCanvas("Global Wedge").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Global Wedge").setGridY(false);
 
     // Occupancy Canvas
-    this.getDetectorCanvas().getCanvas("occupancy").divide(1, 1);
-    this.getDetectorCanvas().getCanvas("occupancy").setGridX(false);
-    this.getDetectorCanvas().getCanvas("occupancy").setGridY(false);
-
-    //// TDC Canvas
-    //this.getDetectorCanvas().getCanvas("tdc").divide(2, 1);
-    //this.getDetectorCanvas().getCanvas("tdc").setGridX(false);
-    //this.getDetectorCanvas().getCanvas("tdc").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Occupancy").divide(1, 1);
+    this.getDetectorCanvas().getCanvas("Occupancy").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Occupancy").setGridY(false);
 
     // WedgeScalers Canvas
-    this.getDetectorCanvas().getCanvas("WedgeScalers").divide(1, 1);
-    this.getDetectorCanvas().getCanvas("WedgeScalers").setGridX(false);
-    this.getDetectorCanvas().getCanvas("WedgeScalers").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Wedge Hits").divide(1, 1);
+    this.getDetectorCanvas().getCanvas("Wedge Hits").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Wedge Hits").setGridY(false);
 
     // BarScalers Canvas
-    this.getDetectorCanvas().getCanvas("BarScalers").divide(1, 1);
-    this.getDetectorCanvas().getCanvas("BarScalers").setGridX(false);
-    this.getDetectorCanvas().getCanvas("BarScalers").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Bar Hits").divide(1, 1);
+    this.getDetectorCanvas().getCanvas("Bar Hits").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Bar Hits").setGridY(false);
 
     // WedgeTDC Canvas (3x5 grid for sectors 0-14)
-    this.getDetectorCanvas().getCanvas("WedgeTDC").divide(3, 5);
-    this.getDetectorCanvas().getCanvas("WedgeTDC").setGridX(false);
-    this.getDetectorCanvas().getCanvas("WedgeTDC").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Wedge TDCs").divide(3, 5);
+    this.getDetectorCanvas().getCanvas("Wedge TDCs").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Wedge TDCs").setGridY(false);
 
     // BarTDC Canvas (3x5 grid for sectors 0-14)
-    this.getDetectorCanvas().getCanvas("BarTDC").divide(3, 5);
-    this.getDetectorCanvas().getCanvas("BarTDC").setGridX(false);
-    this.getDetectorCanvas().getCanvas("BarTDC").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Bar TDCs").divide(3, 5);
+    this.getDetectorCanvas().getCanvas("Bar TDCs").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Bar TDCs").setGridY(false);
 
     // BarSumDiff Canvas
-    this.getDetectorCanvas().getCanvas("BarSumDiff").divide(2, 2);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").setGridX(false);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").setGridY(false);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").divide(2, 2);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").setGridX(false);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").setGridY(false);
 
     // Update summary histogram
     H1F summary = new H1F("summary", "summary", 15, -0.5, 14.5);
@@ -92,7 +90,7 @@ public class ATOFmonitor extends DetectorMonitor {
 
     DataGroup sum = new DataGroup(1, 1);
     sum.addDataSet(summary, 0);
-    this.setDetectorSummary(sum);
+    this.setDetectorSummary(sum); // special summary plots?
 
 
     // Update summary histogram
@@ -109,7 +107,7 @@ public class ATOFmonitor extends DetectorMonitor {
     DataGroup module_group = new DataGroup(2, 1);
     module_group.addDataSet(module_wedge_hits, 0);
     module_group.addDataSet(module_bar_hits, 1);
-    this.getDataGroup().add(module_group, 0, 0, 0);
+    this.getDataGroup().add(module_group, 0, 0, 0); // tab 0 group
 
     // Update globalwedge 
     H1F globalwedge_wedge_hits = new H1F("globalwedge_wedge_hits", "globalwedge wedge hits", 60, -0.5, 59.5);
@@ -131,13 +129,18 @@ public class ATOFmonitor extends DetectorMonitor {
     globalwedge_wedge_vs_z_hits.setTitleX("global wedge");
     globalwedge_wedge_vs_z_hits.setTitleY("component + order");
 
+    H2F globalwedge_all_vs_z_occ = new H2F("globalwedge_all_vs_z_occ", "globalwedge occupancy", 60, -0.5, 59.5,12,-0.5,11.5);
+    globalwedge_all_vs_z_occ.setTitleX("global wedge (phi)");
+    globalwedge_all_vs_z_occ.setTitleY("component + order");
+
     DataGroup globalwedge_group = new DataGroup(3, 1);
     globalwedge_group.addDataSet(globalwedge_wedge_hits, 0);
     globalwedge_group.addDataSet(globalwedge_bar_hits, 1);
     globalwedge_group.addDataSet(globalwedge_wedge_vs_z_hits, 2);
     globalwedge_group.addDataSet(globalwedge_all_vs_z_hits, 3);
+    globalwedge_group.addDataSet(globalwedge_all_vs_z_occ, 4);
 
-    this.getDataGroup().add(globalwedge_group, 2, 0, 0);
+    this.getDataGroup().add(globalwedge_group, 2, 0, 0);  // tab 2 group 
 
 
     // Existing histograms
@@ -235,7 +238,7 @@ public class ATOFmonitor extends DetectorMonitor {
     dg.addDataSet(tdc, 0);
     dg.addDataSet(wedgeScalers, 0);
     dg.addDataSet(barScalers, 0);
-    this.getDataGroup().add(dg, 1, 0, 0);
+    this.getDataGroup().add(dg, 1, 0, 0); // tab group 1
 
     // Create data groups for new histograms
     this.getDataGroup().add(wedgeTDCGroup, 4, 0, 0); // Tab index 4: "WedgeTDC"
@@ -253,33 +256,39 @@ public class ATOFmonitor extends DetectorMonitor {
   public void plotHistos() {
 
     // Plotting existing histograms
-    this.getDetectorCanvas().getCanvas("module").cd(0);
-    this.getDetectorCanvas().getCanvas("module").draw(this.getDataGroup().getItem(0, 0, 0).getH1F("module_bar_hits"));
-    this.getDetectorCanvas().getCanvas("module").cd(1);
-    this.getDetectorCanvas().getCanvas("module").draw(this.getDataGroup().getItem(0, 0, 0).getH1F("module_wedge_hits"));
+    this.getDetectorCanvas().getCanvas("Module").cd(0);
+    this.getDetectorCanvas().getCanvas("Module").draw(this.getDataGroup().getItem(0, 0, 0).getH1F("module_bar_hits"));
+    this.getDetectorCanvas().getCanvas("Module").cd(1);
+    this.getDetectorCanvas().getCanvas("Module").getPad(2).setPalette("kCool");
+    this.getDetectorCanvas().getCanvas("Module").getPad(2).getAxisZ().setLog(true);
+    this.getDetectorCanvas().getCanvas("Module").draw(this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_wedge_vs_z_hits"));
+    this.getDetectorCanvas().getCanvas("Module").cd(2);
+    this.getDetectorCanvas().getCanvas("Module").draw(this.getDataGroup().getItem(0, 0, 0).getH1F("module_wedge_hits"));
 
     // Plotting existing histograms
-    this.getDetectorCanvas().getCanvas("globalwedge").cd(0);
-    this.getDetectorCanvas().getCanvas("globalwedge").draw(this.getDataGroup().getItem(2, 0, 0).getH1F("globalwedge_bar_hits"));
-    this.getDetectorCanvas().getCanvas("globalwedge").getPad(0).getAxisY().setLog(true);
-    this.getDetectorCanvas().getCanvas("globalwedge").cd(1);
-    this.getDetectorCanvas().getCanvas("globalwedge").getPad(1).getAxisY().setLog(true);
-    this.getDetectorCanvas().getCanvas("globalwedge").draw(this.getDataGroup().getItem(2, 0, 0).getH1F("globalwedge_wedge_hits"));
-    this.getDetectorCanvas().getCanvas("globalwedge").cd(2);
-    this.getDetectorCanvas().getCanvas("globalwedge").getPad(2).setPalette("kCool");
-    this.getDetectorCanvas().getCanvas("globalwedge").getPad(2).getAxisZ().setLog(true);
-    this.getDetectorCanvas().getCanvas("globalwedge").draw(this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_wedge_vs_z_hits"));
+    EmbeddedCanvas can = this.getDetectorCanvas().getCanvas("Global Wedge");
+    can.cd(0);
+    can.draw(this.getDataGroup().getItem(2, 0, 0).getH1F("globalwedge_bar_hits"));
+    can.getPad(0).getAxisY().setLog(true);
+    can.cd(1);
+    can.getPad(1).getAxisY().setLog(true);
+    can.draw(this.getDataGroup().getItem(2, 0, 0).getH1F("globalwedge_wedge_hits"));
+    can.cd(2);
+    can.getPad(2).setPalette("kCool");
+    can.getPad(2).getAxisZ().setLog(true);
+    can.draw(this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_wedge_vs_z_hits"));
 
     //this.getDetectorCanvas().getCanvas("occupancy").getPad(0).setPalette("kCool");
     //this.getDetectorCanvas().getCanvas("occupancy").getPad(0).getAxisZ().setLog(getLogZ());
     //this.getDetectorCanvas().getCanvas("occupancy").draw(this.getDataGroup().getItem(1, 0, 0).getH2F("occTDC"));
 
     // Plotting existing histograms
-    this.getDetectorCanvas().getCanvas("occupancy").cd(0);
+    this.getDetectorCanvas().getCanvas("Occupancy").cd(0);
     // Optionally, set the palette if supported
-    this.getDetectorCanvas().getCanvas("occupancy").getPad(0).setPalette("kCool");
+    this.getDetectorCanvas().getCanvas("Occupancy").getPad(0).setPalette("kCool");
     //this.getDetectorCanvas().getCanvas("occupancy").getPad(0).getAxisZ().setLog(true);
-    this.getDetectorCanvas().getCanvas("occupancy").draw(this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_hits"));
+    //this.getDetectorCanvas().getCanvas("occupancy").draw(this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_hits"));
+    this.getDetectorCanvas().getCanvas("Occupancy").draw(this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_occ"));
 
     //this.getDetectorCanvas().getCanvas("occupancy").cd(1);
     //// Optionally, set the palette if supported
@@ -295,71 +304,69 @@ public class ATOFmonitor extends DetectorMonitor {
     //this.getDetectorCanvas().getCanvas("tdc").draw(this.getDataGroup().getItem(1, 0, 0).getH2F("tdc"));
 
     // Plot WedgeScalers
-    this.getDetectorCanvas().getCanvas("WedgeScalers").cd(0);
-    // Optionally, set the palette if supported by your GROOT version
-    this.getDetectorCanvas().getCanvas("WedgeScalers").getPad(0).setPalette("kCool");
-    this.getDetectorCanvas().getCanvas("WedgeScalers").draw(this.getDataGroup().getItem(1, 0, 0).getH2F("wedgeScalers"));
-    this.getDetectorCanvas().getCanvas("WedgeScalers").update();
+    this.getDetectorCanvas().getCanvas("Wedge Hits").cd(0);
+    this.getDetectorCanvas().getCanvas("Wedge Hits").getPad(0).setPalette("kCool");
+    this.getDetectorCanvas().getCanvas("Wedge Hits").draw(this.getDataGroup().getItem(1, 0, 0).getH2F("wedgeScalers"));
+    this.getDetectorCanvas().getCanvas("Wedge Hits").update();
 
     // Plot BarScalers
-    this.getDetectorCanvas().getCanvas("BarScalers").cd(0);
-    // Optionally, set the palette if supported
-    this.getDetectorCanvas().getCanvas("BarScalers").getPad(0).setPalette("kCool");
-    this.getDetectorCanvas().getCanvas("BarScalers").draw(this.getDataGroup().getItem(1, 0, 0).getH2F("barScalers"));
-    this.getDetectorCanvas().getCanvas("BarScalers").update();
+    this.getDetectorCanvas().getCanvas("Bar Hits").cd(0);
+    this.getDetectorCanvas().getCanvas("Bar Hits").getPad(0).setPalette("kCool");
+    this.getDetectorCanvas().getCanvas("Bar Hits").draw(this.getDataGroup().getItem(1, 0, 0).getH2F("barScalers"));
+    this.getDetectorCanvas().getCanvas("Bar Hits").update();
 
     // Plot WedgeTDC Histograms
     DataGroup wedgeTDCGroup = this.getDataGroup().getItem(4, 0, 0);
     for (int sector = 0; sector < 15; sector++) {
-      this.getDetectorCanvas().getCanvas("WedgeTDC").cd(sector);
+      this.getDetectorCanvas().getCanvas("Wedge TDCs").cd(sector);
       H1F wedgeTDC = wedgeTDCGroup.getH1F("wedgeTDC_sector_" + sector);
       wedgeTDC.setFillColor(38); // Ensure consistent color
-      this.getDetectorCanvas().getCanvas("WedgeTDC").draw(wedgeTDC);
-      this.getDetectorCanvas().getCanvas("WedgeTDC").getPad(sector).getAxisY().setLog(true);
+      this.getDetectorCanvas().getCanvas("Wedge TDCs").draw(wedgeTDC);
+      this.getDetectorCanvas().getCanvas("Wedge TDCs").getPad(sector).getAxisY().setLog(true);
     }
-    this.getDetectorCanvas().getCanvas("WedgeTDC").update();
+    this.getDetectorCanvas().getCanvas("Wedge TDCs").update();
 
     // Plot BarTDC Histograms
     DataGroup barTDCGroup = this.getDataGroup().getItem(5, 0, 0);
     for (int sector = 0; sector < 15; sector++) {
-      this.getDetectorCanvas().getCanvas("BarTDC").cd(sector);
+      this.getDetectorCanvas().getCanvas("Bar TDCs").cd(sector);
       H1F barTDC = barTDCGroup.getH1F("barTDC_sector_" + sector);
       barTDC.setFillColor(42); // Ensure consistent color
-      this.getDetectorCanvas().getCanvas("BarTDC").draw(barTDC);
-      this.getDetectorCanvas().getCanvas("BarTDC").getPad(sector).getAxisY().setLog(true);
+      this.getDetectorCanvas().getCanvas("Bar TDCs").draw(barTDC);
+      this.getDetectorCanvas().getCanvas("Bar TDCs").getPad(sector).getAxisY().setLog(true);
     }
-    this.getDetectorCanvas().getCanvas("BarTDC").update();
+    this.getDetectorCanvas().getCanvas("Bar TDCs").update();
 
     // Plot BarSumDiff Histograms
     DataGroup barSumDiffGroup = this.getDataGroup().getItem(6, 0, 0);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").cd(0);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").cd(0);
     H1F barSum = barSumDiffGroup.getH1F("barSum");
     barSum.setFillColor(46);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").draw(barSum);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").getPad(0).getAxisY().setLog(true);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").draw(barSum);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").getPad(0).getAxisY().setLog(true);
 
-    this.getDetectorCanvas().getCanvas("BarSumDiff").cd(1);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").cd(1);
     H1F barDiff = barSumDiffGroup.getH1F("barDiff");
     barDiff.setFillColor(38);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").draw(barDiff);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").update();
-    this.getDetectorCanvas().getCanvas("BarSumDiff").getPad(1).getAxisY().setLog(true);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").draw(barDiff);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").update();
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").getPad(1).getAxisY().setLog(true);
 
 
     // Plot BarSumDiff Histograms
-    this.getDetectorCanvas().getCanvas("BarSumDiff").cd(2);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").cd(2);
     H1F barSumTime = barSumDiffGroup.getH1F("barSumTime");
     barSumTime.setFillColor(46);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").draw(barSumTime);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").getPad(2).getAxisY().setLog(true);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").draw(barSumTime);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").getPad(2).getAxisY().setLog(true);
 
 
-    this.getDetectorCanvas().getCanvas("BarSumDiff").cd(3);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").cd(3);
     H1F barDiffTime = barSumDiffGroup.getH1F("barDiffTime");
     barDiffTime.setFillColor(38);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").draw(barDiffTime);
-    this.getDetectorCanvas().getCanvas("BarSumDiff").update();
-    this.getDetectorCanvas().getCanvas("BarSumDiff").getPad(3).getAxisY().setLog(true);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").draw(barDiffTime);
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").update();
+    this.getDetectorCanvas().getCanvas("Bar Sum and Diff").getPad(3).getAxisY().setLog(true);
 
     // Update detector view
     this.getDetectorView().getView().repaint();
@@ -408,6 +415,7 @@ public class ATOFmonitor extends DetectorMonitor {
             this.getDataGroup().getItem(2, 0, 0).getH1F("globalwedge_bar_hits").fill(w);
           }
           this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_hits").fill(w,comp+order);
+          //this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_occ").fill(w,comp+order);
 
 
 
@@ -468,10 +476,14 @@ public class ATOFmonitor extends DetectorMonitor {
   @Override
   public void analysisUpdate() {
     if (this.getNumberOfEvents() > 0) {
-      H2F raw = this.getDataGroup().getItem(1, 0, 0).getH2F("rawTDC");
-      for (int loop = 0; loop < raw.getDataBufferSize(); loop++) {
-        this.getDataGroup().getItem(1, 0, 0).getH2F("occTDC").setDataBufferBin(loop, 100 * raw.getDataBufferBin(loop) / this.getNumberOfEvents());
+      H2F hits = this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_hits");
+      for (int loop = 0; loop < hits.getDataBufferSize(); loop++) {
+        this.getDataGroup().getItem(2, 0, 0).getH2F("globalwedge_all_vs_z_occ").setDataBufferBin(loop, hits.getDataBufferBin(loop) / this.getNumberOfEvents());
       }
+      //H2F raw = this.getDataGroup().getItem(1, 0, 0).getH2F("rawTDC");
+      //for (int loop = 0; loop < raw.getDataBufferSize(); loop++) {
+      //  this.getDataGroup().getItem(1, 0, 0).getH2F("occTDC").setDataBufferBin(loop, 100 * raw.getDataBufferBin(loop) / this.getNumberOfEvents());
+      //}
     }
   }
 }
