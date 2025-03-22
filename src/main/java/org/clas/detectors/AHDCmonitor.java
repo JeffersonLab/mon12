@@ -51,7 +51,7 @@ public class AHDCmonitor  extends DetectorMonitor {
         H2F hist2d_raw_occupancy = new H2F("raw_occupancy", "raw_occupancy", 100, 1, 100, 8, 1, 9);
 	hist2d_occupancy.setTitleY("layer number");
         hist2d_occupancy.setTitleX("wire number");
-	hist2d_occupancy.setTitle("< occupancy >");
+	hist2d_occupancy.setTitle("occupancy");
 
 	H2F hist2d_adcMax = new H2F("adcMax", "adcMax", 100, 1, 100, 8, 1, 9);
 	H2F hist2d_raw_adcMax = new H2F("raw_adcMax", "raw_adcMax", 100, 1, 100, 8, 1, 9);
@@ -113,27 +113,27 @@ public class AHDCmonitor  extends DetectorMonitor {
     public void plotHistos() {
         // plotting histos
         this.getDetectorCanvas().getCanvas("charge").cd(0);
-        this.getDetectorCanvas().getCanvas("charge").getPad(0).getAxisZ().setLog(getLogZ());
+        //this.getDetectorCanvas().getCanvas("charge").getPad(0).getAxisZ().setLog(getLogZ());
         this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("occupancy"));
         this.getDetectorCanvas().getCanvas("charge").cd(1);
-        this.getDetectorCanvas().getCanvas("charge").getPad(1).getAxisZ().setLog(true);
+        //this.getDetectorCanvas().getCanvas("charge").getPad(1).getAxisZ().setLog(true);
         this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("adcMax"));
         this.getDetectorCanvas().getCanvas("charge").cd(2);
-        this.getDetectorCanvas().getCanvas("charge").getPad(2).getAxisZ().setLog(true);
+        //this.getDetectorCanvas().getCanvas("charge").getPad(2).getAxisZ().setLog(true);
         this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("integral"));
 	this.getDetectorCanvas().getCanvas("charge").update();
         
         this.getDetectorCanvas().getCanvas("time").cd(0);
-        this.getDetectorCanvas().getCanvas("time").getPad(0).getAxisZ().setLog(getLogZ());
+        //this.getDetectorCanvas().getCanvas("time").getPad(0).getAxisZ().setLog(getLogZ());
         this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("timeMax"));
         this.getDetectorCanvas().getCanvas("time").cd(1);
-        this.getDetectorCanvas().getCanvas("time").getPad(1).getAxisZ().setLog(getLogZ());
+        //this.getDetectorCanvas().getCanvas("time").getPad(1).getAxisZ().setLog(getLogZ());
         this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime"));
 	this.getDetectorCanvas().getCanvas("time").cd(2);
-	this.getDetectorCanvas().getCanvas("time").getPad(2).getAxisZ().setLog(getLogZ());
+	//this.getDetectorCanvas().getCanvas("time").getPad(2).getAxisZ().setLog(getLogZ());
 	this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold"));
 	this.getDetectorCanvas().getCanvas("time").cd(3);
-	this.getDetectorCanvas().getCanvas("time").getPad(3).getAxisZ().setLog(getLogZ());
+	///this.getDetectorCanvas().getCanvas("time").getPad(3).getAxisZ().setLog(getLogZ());
 	this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime"));
 	this.getDetectorCanvas().getCanvas("time").update();
 
@@ -207,7 +207,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 
     @Override
     public void analysisUpdate() {
-        if(this.getNumberOfEvents()>0) {
+      int nevents = this.getNumberOfEvents();
+      if(nevents>0) {
 	    H2F hist2d_raw_occupancy = this.getDataGroup().getItem(0,0,0).getH2F("raw_occupancy");
             for(int ibin = 0; ibin < hist2d_raw_occupancy.getDataBufferSize(); ibin++){
             	float raw_occupancy = hist2d_raw_occupancy.getDataBufferBin(ibin);
@@ -220,7 +221,7 @@ public class AHDCmonitor  extends DetectorMonitor {
 		    float raw_timeOverThreshold = this.getDataGroup().getItem(0,0,0).getH2F("raw_timeOverThreshold").getDataBufferBin(ibin);
 		    float raw_constantFractionTime = this.getDataGroup().getItem(0,0,0).getH2F("raw_constantFractionTime").getDataBufferBin(ibin);
 		    // renormalise them
-		    this.getDataGroup().getItem(0,0,0).getH2F("occupancy").setDataBufferBin(ibin, raw_occupancy/1.0);
+		    this.getDataGroup().getItem(0,0,0).getH2F("occupancy").setDataBufferBin(ibin, raw_occupancy/nevents);
 		    this.getDataGroup().getItem(0,0,0).getH2F("adcMax").setDataBufferBin(ibin, raw_adcMax/raw_occupancy);
 		    this.getDataGroup().getItem(0,0,0).getH2F("integral").setDataBufferBin(ibin, raw_integral/raw_occupancy);
 		    this.getDataGroup().getItem(0,0,0).getH2F("timeMax").setDataBufferBin(ibin, raw_timeMax/raw_occupancy);
