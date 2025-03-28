@@ -886,7 +886,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         parser.addOption("-geometry", "1600x1000",      "Select window size, e.g. 1600x1200");
         parser.addOption("-tabs",     "All",            "Select active tabs, e.g. BST:FTOF");
         parser.addOption("-logbook",  "HBLOG",          "Select electronic logbook");
-        parser.addOption("-trigger",  "0x0",            "Select trigger bits )0x0 = all)");
+        parser.addOption("-trigger",  "0x0",            "Select trigger bits (0x0 = all)");
         parser.addOption("-ethost",   "clondaq6",       "Select ET host name");
         parser.addOption("-etip",     "129.57.167.60",  "Select ET host IP address");
         parser.addOption("-etsession","/et/clasprod",  "DAQ session, usually clasprod or clastest7");
