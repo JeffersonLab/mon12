@@ -257,7 +257,7 @@ public class DetectorMonitor implements IDataEventListener, ActionListener {
     }
 
     public boolean testTriggerMask() {
-        return (this.UITriggerMask != 0 && this.UITriggerMask != -1) ? isTrigMaskSet(this.getTriggerMask()) : true;
+        return (this.UITriggerMask != 0) ? isTrigMaskSet(this.getTriggerMask()) : true;
     }
 
     public boolean isActive() {

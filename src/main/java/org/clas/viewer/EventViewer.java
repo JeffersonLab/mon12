@@ -619,7 +619,8 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         }
 
         // only count events if the trigger mask is satisfied:
-        if ((tg & this.triggerMask) != 0L) this.eventCounter++;
+        if (this.triggerMask==0L || 
+           (tg & this.triggerMask) != 0L) this.eventCounter++;
 
         // periodically, automatically reset histograms and save images:
         if (this.histoResetEvents > 0 && this.eventCounter > this.histoResetEvents) {
@@ -885,9 +886,9 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         parser.addOption("-geometry", "1600x1000",      "Select window size, e.g. 1600x1200");
         parser.addOption("-tabs",     "All",            "Select active tabs, e.g. BST:FTOF");
         parser.addOption("-logbook",  "HBLOG",          "Select electronic logbook");
-        parser.addOption("-trigger",  "0xFFFFFFFF",     "Select trigger bits");
+        parser.addOption("-trigger",  "0x0",            "Select trigger bits )0x0 = all)");
         parser.addOption("-ethost",   "clondaq6",       "Select ET host name");
-        parser.addOption("-etip",     "129.57.167.60",  "Select ET host name");
+        parser.addOption("-etip",     "129.57.167.60",  "Select ET host IP address");
         parser.addOption("-etsession","/et/clasprod",  "DAQ session, usually clasprod or clastest7");
         parser.addOption("-autosave", "-1",             "Autosave every N events (e.g. for Hydra)");
         parser.addOption("-batch",    "0",              "Connect and run automatically");

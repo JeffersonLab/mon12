@@ -1,0 +1,13 @@
+#!/bin/bash
+
+dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+$dir/mon12 \
+    -tabs "AHDC:ATOF:BAND:CND:CTOF:DC:ECAL:FTCAL:FTHODO:FTOF:HTCC:LTCC:RICH:RF:HEL:Trigger:TimeJitteR"\
+    -trigger 0x0 \
+    -ethost clondaq7 \
+    -logbook hbrun \
+    -etip 129.57.167.20 \
+    -etsession /et/clastest7 \
+    $*
+
