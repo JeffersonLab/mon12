@@ -4,7 +4,7 @@
 # user-defined $CLAS12DIR to find COATJAVA for the HIPO schema directory:
 if [ -z ${CLAS12DIR+x} ]
 then
-   export CLAS12DIR=/usr/clas12/offline/coatjava/pro
+   #export CLAS12DIR=/usr/clas12/offline/coatjava/pro
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
    echo "! \$CLAS12DIR undefined, assuming COATJAVA is at $CLAS12DIR !"
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"

@@ -19,7 +19,7 @@ public class AHDCmonitor  extends DetectorMonitor {
 
     public AHDCmonitor(String name) {
         super(name);
-        this.setDetectorTabNames("charge", "time","Occupancy");
+        this.setDetectorTabNames("charge", "time","Occupancy","1D");
         this.init(false);
     }
 
@@ -99,6 +99,10 @@ public class AHDCmonitor  extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("Occupancy").divide(2, 3);
         this.getDetectorCanvas().getCanvas("Occupancy").setGridX(false);
         this.getDetectorCanvas().getCanvas("Occupancy").setGridY(false);
+
+        this.getDetectorCanvas().getCanvas("1D").divide(2, 3);
+        this.getDetectorCanvas().getCanvas("1D").setGridX(false);
+        this.getDetectorCanvas().getCanvas("1D").setGridY(false);
 
         // summary
         H2F summary = new H2F("summary","summary", 100, 1, 100, 8, 1, 9);
@@ -199,6 +203,33 @@ public class AHDCmonitor  extends DetectorMonitor {
         number_of_layers_hit.setTitleX("N layers firing");
 
 
+        H1F tdc_values = new H1F("tdc_values", "TDC Values of layers hit", 200, 0, 400);
+        tdc_values.setTitleX("TDC");
+
+        H1F time_values = new H1F("time_values", "time Values of layers hit", 200, 0, 400);
+        time_values.setTitleX("time");
+
+        H1F average_waveform = new H1F("average_waveform", "average waveform", 50, 0, 51);
+        average_waveform.setTitleX("sample");
+
+        H1F average_waveform_raw = new H1F("average_waveform_raw", "average waveform", 50, 0, 51);
+        average_waveform_raw.setTitleX("sample");
+
+        H1F average_waveform_sample_count = new H1F("average_waveform_sample_count", "sample count", 50, 0, 51);
+        average_waveform_sample_count.setTitleX("sample");
+
+        H1F average_waveform_samples = new H1F("average_waveform_samples", "N samples", 50, 0, 51);
+        average_waveform_samples.setTitleX("sample counts");
+
+
+
+        H1F waveform_timestamp = new H1F("waveform_timestamp", "waveform timestamp", 100, 0, 1000);
+        waveform_timestamp.setTitleX("wf timestamp");
+
+        H1F waveform_time = new H1F("waveform_time", "waveform time", 100, 0, 1000);
+        waveform_time.setTitleX("wf time");
+
+
         // add graph to DataGroup
         DataGroup dg = new DataGroup(14,1); 
         dg.addDataSet(hist2d_occupancy, 0);
@@ -225,7 +256,13 @@ public class AHDCmonitor  extends DetectorMonitor {
         dg.addDataSet(missing_layer_hit6, 20);
         dg.addDataSet(missing_layer_hit5, 22);
         dg.addDataSet(number_of_layers_hit, 23);
-
+        dg.addDataSet(tdc_values, 24);
+        dg.addDataSet(time_values, 25);
+        dg.addDataSet(waveform_time, 26);
+        dg.addDataSet(average_waveform, 27);
+        dg.addDataSet(average_waveform_raw, 28);
+        dg.addDataSet(average_waveform_sample_count, 29); 
+        dg.addDataSet(average_waveform_samples, 30); 
         this.getDataGroup().add(dg,0,0,0);
     }
 
@@ -273,6 +310,18 @@ public class AHDCmonitor  extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("Occupancy").cd(5);
         this.getDetectorCanvas().getCanvas("Occupancy").draw(this.getDataGroup().getItem(0,0,0).getH2F("hist2d_6layer_hits"));
 
+
+        this.getDetectorCanvas().getCanvas("1D").cd(0);
+        this.getDetectorCanvas().getCanvas("1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("tdc_values"));
+        this.getDetectorCanvas().getCanvas("1D").cd(1);
+        this.getDetectorCanvas().getCanvas("1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("time_values"));
+        this.getDetectorCanvas().getCanvas("1D").cd(2);
+        this.getDetectorCanvas().getCanvas("1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_samples"));
+        this.getDetectorCanvas().getCanvas("1D").cd(3);
+        this.getDetectorCanvas().getCanvas("1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("waveform_time"));
+        this.getDetectorCanvas().getCanvas("1D").cd(4);
+        this.getDetectorCanvas().getCanvas("1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("average_waveform"));
+
         this.getDetectorView().getView().repaint();
         this.getDetectorView().update();
     }
@@ -284,6 +333,47 @@ public class AHDCmonitor  extends DetectorMonitor {
             //System.out.println(" has AHDC bank!");
             DataBank bank = event.getBank("AHDC::adc");
             int rows = bank.rows();
+
+            DataBank wfbank = event.getBank("AHDC::wf");
+            int wfrows = wfbank.rows();
+
+            // loop over hits and fill histograms
+            for(int loop = 0; loop < wfrows; loop++){
+                int sector     = wfbank.getByte("sector", loop);
+                int layer      = wfbank.getByte("layer", loop);
+                int comp       = wfbank.getShort("component", loop);
+                int order      = wfbank.getByte("order", loop);
+                long timestamp = wfbank.getLong("timestamp", loop);
+                int  time      = wfbank.getInt("time", loop);
+
+                if(  AHDCmonitor.getLayerNumber(layer)  > 7 ) continue;
+                //System.out.println("wf timestamp: " +  timestamp);
+
+                //H1F waveform_timestamp  = this.getDataGroup().getItem(0,0,0).getH1F("waveform_timestamp");
+                //waveform_timestamp.fill(timestamp);
+
+                H1F waveform_time  = this.getDataGroup().getItem(0,0,0).getH1F("waveform_time");
+                waveform_time.fill(time);
+
+                H1F average_waveform_raw  = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_raw");
+                H1F average_waveform_sample_count  = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_sample_count");
+                H1F average_waveform_samples  = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_samples");
+                int n_samples = 0;
+                for(int i= 0; i<49 ; i++) {
+                    int sample_value = wfbank.getShort("s"+(i+1), loop);
+                    average_waveform_raw.fill(i,sample_value);
+                    if(sample_value >0) {
+                //System.out.println("wf sample: " +i + ", " + sample_value  );
+                        n_samples++;
+                        average_waveform_sample_count.fill(i);
+                    }
+                }
+                average_waveform_samples.fill(n_samples);
+                waveform_time.fill(time);
+            } //waveform loop
+
+            //System.out.println("Derp\n");
+
 
             int layers_hit[] = {0,0,0,0,0,0,0,0};
             // loop over hits to see how many layers fire
@@ -354,6 +444,8 @@ public class AHDCmonitor  extends DetectorMonitor {
                 //System.out.println("ROW " + loop + " SECTOR = " + sector + " LAYER = " + layer + " COMPONENT = " + comp + " ORDER + " + order +
                 //      " ADC = " + adc + " TIME = " + time + "leadingEdgeTime = " + leadingEdgeTime); 
                 if(adc>=0 && time>0) {
+                    this.getDataGroup().getItem(0,0,0).getH1F("tdc_values").fill(leadingEdgeTime);
+                    this.getDataGroup().getItem(0,0,0).getH1F("time_values").fill(time);
 
                     int layer_number = AHDCmonitor.getLayerNumber(layer);
 
@@ -400,6 +492,19 @@ public class AHDCmonitor  extends DetectorMonitor {
                 double layer_hits =  hits_vs_layer.getBinContent(ibin);
                 occupancy_vs_layer.setBinContent(ibin, 100.0*layer_hits/(nevents*layer_wires[ibin]));
             }
+
+            H1F average_waveform      = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform");
+            H1F average_waveform_raw  = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_raw");
+            H1F average_waveform_sample_count   = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_sample_count");
+
+            for(int ibin = 0; ibin < average_waveform_raw.getDataSize(0); ibin++){
+                double sample_sum   =  average_waveform_raw.getBinContent(ibin);
+                double sample_count =  average_waveform_sample_count.getBinContent(ibin);
+                if(sample_count > 0){
+                    average_waveform.setBinContent(ibin, sample_sum/(sample_count *nevents));
+                }
+            }
+
 
             H2F hist2d_raw_occupancy = this.getDataGroup().getItem(0,0,0).getH2F("raw_occupancy");
             for(int ibin = 0; ibin < hist2d_raw_occupancy.getDataBufferSize(); ibin++){

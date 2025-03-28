@@ -3,7 +3,7 @@
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 $dir/mon12 \
-    -tabs "AHDC:ATOF:Trigger:TimeJitter:CND:CTOF"\
+    -tabs "DC:AHDC:ATOF:Trigger:TimeJitter:CND:CTOF"\
     -trigger 0xFFFFFFFF \
     -ethost clondaq7 \
     -logbook hbalert \
