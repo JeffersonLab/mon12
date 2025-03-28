@@ -3,7 +3,7 @@
 dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 $dir/mon12 \
-    -tabs "AHDC:ATOF:BAND:CND:CTOF:DC:ECAL:FTCAL:FTHODO:FTOF:HTCC:LTCC:RICH:RF:HEL:Trigger:TimeJitteR"\
+    -tabs "AHDC:ATOF:BAND:CND:CTOF:DC:ECAL:FTCAL:FTHODO:FTOF:HTCC:LTCC:RICH:RF:HEL:Trigger:TimeJitter"\
     -trigger 0x0 \
     -logbook HBRUN \
     -ethost clondaq7 \
