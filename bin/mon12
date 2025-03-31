@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# In the counting house, use fixed COATJAVA installation, otherwise rely on
-# user-defined $CLAS12DIR to find COATJAVA for the HIPO schema directory:
+# If $CLAS12DIR exists, honor it, else assume we're in the Hall B counting house:
 if [ -z ${CLAS12DIR+x} ]
 then
-   #export CLAS12DIR=/usr/clas12/offline/coatjava/pro
+   export CLAS12DIR=/usr/clas12/offline/coatjava/pro
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
    echo "! \$CLAS12DIR undefined, assuming COATJAVA is at $CLAS12DIR !"
    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
