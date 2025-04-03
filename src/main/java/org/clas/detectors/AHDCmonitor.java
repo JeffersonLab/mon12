@@ -19,7 +19,7 @@ public class AHDCmonitor  extends DetectorMonitor {
 
     public AHDCmonitor(String name) {
         super(name);
-        this.setDetectorTabNames("charge", "time","Occupancy","1D");
+        this.setDetectorTabNames("charge", "time", "time1D", "Occupancy","1D");
         this.init(false);
     }
 
@@ -88,7 +88,7 @@ public class AHDCmonitor  extends DetectorMonitor {
         // initialize canvas and create histograms
         this.setNumberOfEvents(0);
 
-        this.getDetectorCanvas().getCanvas("charge").divide(1, 3);
+        this.getDetectorCanvas().getCanvas("charge").divide(1, 4);
         this.getDetectorCanvas().getCanvas("charge").setGridX(false);
         this.getDetectorCanvas().getCanvas("charge").setGridY(false);
 
@@ -96,7 +96,11 @@ public class AHDCmonitor  extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("time").setGridX(false);
         this.getDetectorCanvas().getCanvas("time").setGridY(false);
 
-        this.getDetectorCanvas().getCanvas("Occupancy").divide(2, 3);
+        this.getDetectorCanvas().getCanvas("time1D").divide(2, 3);
+        this.getDetectorCanvas().getCanvas("time1D").setGridX(false);
+        this.getDetectorCanvas().getCanvas("time1D").setGridY(false);
+        
+	this.getDetectorCanvas().getCanvas("Occupancy").divide(2, 3);
         this.getDetectorCanvas().getCanvas("Occupancy").setGridX(false);
         this.getDetectorCanvas().getCanvas("Occupancy").setGridY(false);
 
@@ -132,7 +136,12 @@ public class AHDCmonitor  extends DetectorMonitor {
         hist2d_integral.setTitleY("layer number");
         hist2d_integral.setTitleX("wire number");
         hist2d_integral.setTitle("< integral >");
-
+		// put here because it is related to the charge
+        H2F hist2d_timeOverThreshold = new H2F("timeOverThreshold", "timeOverThreshold", 100, 1, 100, 8, 1, 9);
+        H2F hist2d_raw_timeOverThreshold = new H2F("raw_timeOverThreshold", "raw_timeOverThreshold", 100, 1, 100, 8, 1, 9);
+        hist2d_timeOverThreshold.setTitleY("layer number");
+        hist2d_timeOverThreshold.setTitleX("wire number");
+        hist2d_timeOverThreshold.setTitle("< timeOverThreshold >");
         // time
         H2F hist2d_timeMax = new H2F("timeMax", "timeMax", 100, 1, 100, 8, 1, 9);
         H2F hist2d_raw_timeMax = new H2F("raw_timeMax", "raw_timeMax", 100, 1, 100, 8, 1, 9);
@@ -146,19 +155,43 @@ public class AHDCmonitor  extends DetectorMonitor {
         hist2d_leadingEdgeTime.setTitleX("wire number");
         hist2d_leadingEdgeTime.setTitle("< leadingEdgeTime >");
 
-        H2F hist2d_timeOverThreshold = new H2F("timeOverThreshold", "timeOverThreshold", 100, 1, 100, 8, 1, 9);
-        H2F hist2d_raw_timeOverThreshold = new H2F("raw_timeOverThreshold", "raw_timeOverThreshold", 100, 1, 100, 8, 1, 9);
-        hist2d_timeOverThreshold.setTitleY("layer number");
-        hist2d_timeOverThreshold.setTitleX("wire number");
-        hist2d_timeOverThreshold.setTitle("< timeOverThreshold >");
-
         H2F hist2d_constantFractionTime = new H2F("constantFractionTime", "constantFractionTime", 100, 1, 100, 8, 1, 9);
         H2F hist2d_raw_constantFractionTime = new H2F("raw_constantFractionTime", "raw_constantFractionTime", 100, 1, 100, 8, 1, 9);
         hist2d_constantFractionTime.setTitleY("layer number");
         hist2d_constantFractionTime.setTitleX("wire number");
         hist2d_constantFractionTime.setTitle("< constantFractionTime >");
 
-        // Occupancy
+        H2F hist2d_wftime = new H2F("wftime2d", "wftime2d", 100, 1, 100, 8, 1, 9);
+        H2F hist2d_raw_wftime = new H2F("raw_wftime2d", "raw_wftime2d", 100, 1, 100, 8, 1, 9);
+        hist2d_wftime.setTitleY("layer number");
+        hist2d_wftime.setTitleX("wire number");
+        hist2d_wftime.setTitle("< wftime >");
+
+        H1F hist1d_leadingEdgeTime = new H1F("leadingEdgeTime1D", "leadingEdgeTime1D", 100, 0, 2500);
+        hist1d_leadingEdgeTime.setTitleX("leadingEdgeTime (ns)");
+        hist1d_leadingEdgeTime.setTitleY("count");
+        
+	H1F hist1d_timeOverThreshold = new H1F("timeOverThreshold1D", "timeOverThreshold1D", 100, 0, 2500);
+        hist1d_timeOverThreshold.setTitleX("timeOverThreshold (ns)");
+        hist1d_timeOverThreshold.setTitleY("count");
+
+        H1F hist1d_constantFractionTime = new H1F("constantFractionTime1D", "constantFractionTime1D", 100, 0, 2500);
+        hist1d_constantFractionTime.setTitleX("constantFractionTime (ns)");
+        hist1d_constantFractionTime.setTitleY("count");
+        
+	H1F hist1d_wftime = new H1F("wftime1D", "wftime1D", 100, 0, 50);
+        hist1d_wftime.setTitleX("wftime (bin)");
+        hist1d_wftime.setTitleY("count");
+        
+        H1F hist1d_adcMax = new H1F("adcMax1D", "adcMax1D", 100, 0, 4095);
+        hist1d_adcMax.setTitleX("adcMax");
+        hist1d_adcMax.setTitleY("count");
+	
+        H1F hist1d_integral = new H1F("integral1D", "integral1D", 100, 0, 40000);
+        hist1d_integral.setTitleX("integral");
+        hist1d_integral.setTitleY("count");
+	
+	// Occupancy
         H1F hits_vs_layer = new H1F("hits_vs_layer", "raw_occupancy", 8, 1, 9);
         hits_vs_layer.setTitleY("hits");
         hits_vs_layer.setTitleX("layer");
@@ -263,7 +296,15 @@ public class AHDCmonitor  extends DetectorMonitor {
         dg.addDataSet(average_waveform_raw, 28);
         dg.addDataSet(average_waveform_sample_count, 29); 
         dg.addDataSet(average_waveform_samples, 30); 
-        this.getDataGroup().add(dg,0,0,0);
+        dg.addDataSet(hist2d_wftime, 31);
+        dg.addDataSet(hist2d_raw_wftime, 32);
+        dg.addDataSet(hist1d_integral, 34);
+        dg.addDataSet(hist1d_leadingEdgeTime, 33);
+        dg.addDataSet(hist1d_timeOverThreshold, 35);
+        dg.addDataSet(hist1d_constantFractionTime, 36);
+        dg.addDataSet(hist1d_wftime, 37);
+        dg.addDataSet(hist1d_adcMax, 38);
+	this.getDataGroup().add(dg,0,0,0);
     }
 
     @Override
@@ -279,6 +320,9 @@ public class AHDCmonitor  extends DetectorMonitor {
         this.getDetectorCanvas().getCanvas("charge").cd(2);
         //this.getDetectorCanvas().getCanvas("charge").getPad(2).getAxisZ().setLog(true);
         this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("integral"));
+        this.getDetectorCanvas().getCanvas("charge").cd(3);
+        //this.getDetectorCanvas().getCanvas("charge").getPad(2).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("charge").draw(this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold"));
         this.getDetectorCanvas().getCanvas("charge").update();
 
         this.getDetectorCanvas().getCanvas("time").cd(0);
@@ -288,12 +332,32 @@ public class AHDCmonitor  extends DetectorMonitor {
         //this.getDetectorCanvas().getCanvas("time").getPad(1).getAxisZ().setLog(getLogZ());
         this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime"));
         this.getDetectorCanvas().getCanvas("time").cd(2);
-        //this.getDetectorCanvas().getCanvas("time").getPad(2).getAxisZ().setLog(getLogZ());
-        this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold"));
-        this.getDetectorCanvas().getCanvas("time").cd(3);
         ///this.getDetectorCanvas().getCanvas("time").getPad(3).getAxisZ().setLog(getLogZ());
         this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime"));
+        this.getDetectorCanvas().getCanvas("time").cd(3);
+        ///this.getDetectorCanvas().getCanvas("time").getPad(3).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time").draw(this.getDataGroup().getItem(0,0,0).getH2F("wftime2d"));
         this.getDetectorCanvas().getCanvas("time").update();
+
+        this.getDetectorCanvas().getCanvas("time1D").cd(0);
+        ///this.getDetectorCanvas().getCanvas("time1D").getPad(3).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("adcMax1D"));
+        this.getDetectorCanvas().getCanvas("time1D").cd(2);
+        //this.getDetectorCanvas().getCanvas("time1D").getPad(0).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("integral1D"));
+        this.getDetectorCanvas().getCanvas("time1D").cd(4);
+        ///this.getDetectorCanvas().getCanvas("time1D").getPad(3).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("timeOverThreshold1D"));
+        this.getDetectorCanvas().getCanvas("time1D").cd(1);
+        //this.getDetectorCanvas().getCanvas("time1D").getPad(1).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("leadingEdgeTime1D"));
+        this.getDetectorCanvas().getCanvas("time1D").cd(3);
+        ///this.getDetectorCanvas().getCanvas("time1D").getPad(3).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("constantFractionTime1D"));
+        this.getDetectorCanvas().getCanvas("time1D").cd(5);
+        ///this.getDetectorCanvas().getCanvas("time1D").getPad(3).getAxisZ().setLog(getLogZ());
+        this.getDetectorCanvas().getCanvas("time1D").draw(this.getDataGroup().getItem(0,0,0).getH1F("wftime1D"));
+        this.getDetectorCanvas().getCanvas("time1D").update();
 
         this.getDetectorCanvas().getCanvas("Occupancy").cd(0);
         this.getDetectorCanvas().getCanvas("Occupancy").draw(this.getDataGroup().getItem(0,0,0).getH1F("occupancy_vs_layer"));
@@ -346,7 +410,7 @@ public class AHDCmonitor  extends DetectorMonitor {
                 long timestamp = wfbank.getLong("timestamp", loop);
                 int  time      = wfbank.getInt("time", loop);
 
-                if(  AHDCmonitor.getLayerNumber(layer)  > 7 ) continue;
+                if(  AHDCmonitor.getLayerNumber(layer)  > 8 ) continue;
                 //System.out.println("wf timestamp: " +  timestamp);
 
                 //H1F waveform_timestamp  = this.getDataGroup().getItem(0,0,0).getH1F("waveform_timestamp");
@@ -354,6 +418,8 @@ public class AHDCmonitor  extends DetectorMonitor {
 
                 H1F waveform_time  = this.getDataGroup().getItem(0,0,0).getH1F("waveform_time");
                 waveform_time.fill(time);
+                this.getDataGroup().getItem(0,0,0).getH2F("raw_wftime2d").fill(comp, AHDCmonitor.getLayerNumber(layer), time);
+                this.getDataGroup().getItem(0,0,0).getH1F("wftime1D").fill(time);
 
                 H1F average_waveform_raw  = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_raw");
                 H1F average_waveform_sample_count  = this.getDataGroup().getItem(0,0,0).getH1F("average_waveform_sample_count");
@@ -458,6 +524,11 @@ public class AHDCmonitor  extends DetectorMonitor {
                     this.getDataGroup().getItem(0,0,0).getH2F("raw_leadingEdgeTime").fill(comp, layer_number, leadingEdgeTime);
                     this.getDataGroup().getItem(0,0,0).getH2F("raw_timeOverThreshold").fill(comp, layer_number, timeOverThreshold);
                     this.getDataGroup().getItem(0,0,0).getH2F("raw_constantFractionTime").fill(comp, layer_number, constantFractionTime);
+                    this.getDataGroup().getItem(0,0,0).getH1F("leadingEdgeTime1D").fill(leadingEdgeTime);
+                    this.getDataGroup().getItem(0,0,0).getH1F("timeOverThreshold1D").fill(timeOverThreshold);
+                    this.getDataGroup().getItem(0,0,0).getH1F("constantFractionTime1D").fill(constantFractionTime);
+                    this.getDataGroup().getItem(0,0,0).getH1F("adcMax1D").fill(adc);
+                    this.getDataGroup().getItem(0,0,0).getH1F("integral1D").fill(integral);
 
                     this.getDataGroup().getItem(0,0,0).getH1F("hits_vs_layer").fill(layer_number);
                     //this.getDataGroup().getItem(0,0,0).getH1F("occupancy_vs_layer").fill(layer_number);
@@ -519,6 +590,7 @@ public class AHDCmonitor  extends DetectorMonitor {
                     float raw_leadingEdgeTime = this.getDataGroup().getItem(0,0,0).getH2F("raw_leadingEdgeTime").getDataBufferBin(ibin);
                     float raw_timeOverThreshold = this.getDataGroup().getItem(0,0,0).getH2F("raw_timeOverThreshold").getDataBufferBin(ibin);
                     float raw_constantFractionTime = this.getDataGroup().getItem(0,0,0).getH2F("raw_constantFractionTime").getDataBufferBin(ibin);
+                    float raw_wftime2d = this.getDataGroup().getItem(0,0,0).getH2F("raw_wftime2d").getDataBufferBin(ibin);
                     // renormalise them
                     this.getDataGroup().getItem(0,0,0).getH2F("occupancy").setDataBufferBin(ibin, 100.0*raw_occupancy/nevents);
                     this.getDataGroup().getItem(0,0,0).getH2F("adcMax").setDataBufferBin(ibin, raw_adcMax/raw_occupancy);
@@ -527,6 +599,7 @@ public class AHDCmonitor  extends DetectorMonitor {
                     this.getDataGroup().getItem(0,0,0).getH2F("leadingEdgeTime").setDataBufferBin(ibin, raw_leadingEdgeTime/raw_occupancy);
                     this.getDataGroup().getItem(0,0,0).getH2F("timeOverThreshold").setDataBufferBin(ibin, raw_timeOverThreshold/raw_occupancy);
                     this.getDataGroup().getItem(0,0,0).getH2F("constantFractionTime").setDataBufferBin(ibin, raw_constantFractionTime/raw_occupancy);
+                    this.getDataGroup().getItem(0,0,0).getH2F("wftime2d").setDataBufferBin(ibin, raw_wftime2d/raw_occupancy);
                 }
             }
         }
