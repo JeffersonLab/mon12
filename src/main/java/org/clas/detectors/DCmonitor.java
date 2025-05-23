@@ -235,72 +235,73 @@ public class DCmonitor extends DetectorMonitor {
     @Override
     public void processEvent(DataEvent event) {
                 
+        DataBank bank;
+        if (event.hasBank("DC::tot")) bank = event.getBank("DC::tot");
+        else if (event.hasBank("DC::tdc")) bank = event.getBank("DC::tdc");
+        else return;
+
         // process event info and save into data group
-        if(event.hasBank("DC::tdc")==true){
-            DataBank  bank = event.getBank("DC::tdc");
-            int rows = bank.rows();
-            int[] nHitSector = {0,0,0,0,0,0};
+        int rows = bank.rows();
+        int[] nHitSector = {0,0,0,0,0,0};
 
-            Map<Integer, Integer> multiplicity = new HashMap();
-            for(int i = 0; i < rows; i++){
-                int    sector = bank.getByte("sector",i);
-                int     layer = bank.getByte("layer",i);
-                int      wire = bank.getShort("component",i);
-                int     order = bank.getByte("order",i);
-                int       TDC = bank.getInt("TDC",i);
-                int       ToT = bank.getInt("ToT",i);
-                int    region = (int) (layer-1)/12+1;
-                int        sl = (int) (layer-1)/6+1;
-                int crate = this.reverse.getIntValue("crate",   sector, layer, wire, order%10);
-                int slot  = this.reverse.getIntValue("slot",    sector, layer, wire, order%10);
-                int chan  = this.reverse.getIntValue("channel", sector, layer, wire, order%10);
-                int group = chan/16;
-                int hash = this.generateHashCode(crate, slot, group*16); 
-                if(multiplicity.containsKey(hash))
-                    multiplicity.merge(hash, 1, Integer::sum);
-                else
-                    multiplicity.put(hash, 1);            
-                
-                this.getDataGroup().getItem(sector,0,0).getH2F("raw_sec"+sector).fill(wire*1.0,layer*1.0);                
-                if( ToT > minToT) {
-                    this.getDataGroup().getItem(sector,0,0).getH2F("raw_tot_sec"+sector).fill(wire*1.0,layer*1.0);                
-                }
+        Map<Integer, Integer> multiplicity = new HashMap();
+        for(int i = 0; i < rows; i++){
+            int    sector = bank.getByte("sector",i);
+            int     layer = bank.getByte("layer",i);
+            int      wire = bank.getShort("component",i);
+            int     order = bank.getByte("order",i);
+            int       TDC = bank.getInt("TDC",i);
+            int       ToT = bank.getInt("ToT",i);
+            int    region = (int) (layer-1)/12+1;
+            int        sl = (int) (layer-1)/6+1;
+            int crate = this.reverse.getIntValue("crate",   sector, layer, wire, order%10);
+            int slot  = this.reverse.getIntValue("slot",    sector, layer, wire, order%10);
+            int chan  = this.reverse.getIntValue("channel", sector, layer, wire, order%10);
+            int group = chan/16;
+            int hash = this.generateHashCode(crate, slot, group*16); 
+            if(multiplicity.containsKey(hash))
+                multiplicity.merge(hash, 1, Integer::sum);
+            else
+                multiplicity.put(hash, 1);            
 
-                this.getDataGroup().getItem(sector,0,0).getH1F("raw_reg_occ_sec"+sector).fill(region * 1.0);
-                this.getDataGroup().getItem(sector,0,0).getH2F("tdc_raw"+sector).fill(TDC,layer*1.0);
-                this.getDataGroup().getItem(sector,sl,0).getH1F("tdc_sl_raw" + sector+ sl).fill(TDC,layer*1.0);
-                //if(TDC > 0) this.getDetectorSummary().getH1F("summary").fill(sector*1.0);
-                if(TDC > 0) this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").fill(sector*1.0);
-                this.getDataGroup().getItem(sector,0,0).getH1F("tot"+sector).fill(ToT);
-                
-                if(this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").getEntries()>0) {
-                    this.getDetectorSummary().getH1F("summary").setBinContent(sector-1, 100*this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").getBinContent(sector-1)/this.getNumberOfEvents()/112/12/3);
-                }
-                
-                
-                nHitSector[sector-1]++;
+            this.getDataGroup().getItem(sector,0,0).getH2F("raw_sec"+sector).fill(wire*1.0,layer*1.0);                
+            if( ToT > minToT) {
+                this.getDataGroup().getItem(sector,0,0).getH2F("raw_tot_sec"+sector).fill(wire*1.0,layer*1.0);                
             }
- 
-            for(int sec=1; sec<=6; sec++) {
-                this.getDataGroup().getItem(sec,0,0).getH1F("multiplicity_sec"+ sec).fill(nHitSector[sec-1]*1.0);
+
+            this.getDataGroup().getItem(sector,0,0).getH1F("raw_reg_occ_sec"+sector).fill(region * 1.0);
+            this.getDataGroup().getItem(sector,0,0).getH2F("tdc_raw"+sector).fill(TDC,layer*1.0);
+            this.getDataGroup().getItem(sector,sl,0).getH1F("tdc_sl_raw" + sector+ sl).fill(TDC,layer*1.0);
+            //if(TDC > 0) this.getDetectorSummary().getH1F("summary").fill(sector*1.0);
+            if(TDC > 0) this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").fill(sector*1.0);
+            this.getDataGroup().getItem(sector,0,0).getH1F("tot"+sector).fill(ToT);
+
+            if(this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").getEntries()>0) {
+                this.getDetectorSummary().getH1F("summary").setBinContent(sector-1, 100*this.getDataGroup().getItem(sector,0,0).getH1F("raw_summary").getBinContent(sector-1)/this.getNumberOfEvents()/112/12/3);
             }
-            
-            for(int key : multiplicity.keySet()) {
-                int slot   = this.getL(key);
-                int group  = this.getC(key)/16;
-                int sector = this.forward.getIntValue("sector", this.getS(key), this.getL(key), this.getC(key));
-                int layer  = this.forward.getIntValue("layer",  this.getS(key), this.getL(key), this.getC(key));
-                int region = (layer-1)/12+1;
-                int sc = slot<10 ? (slot-3)*6+group : (slot-7)*6+group;
-                this.getDataGroup().getItem(sector,0,0).getH2F("group_mult_sec"+sector).fill(multiplicity.get(key),(region-1)*85+sc);
-            }
-            
-       }   
+
+
+            nHitSector[sector-1]++;
+        }
+
+        for(int sec=1; sec<=6; sec++) {
+            this.getDataGroup().getItem(sec,0,0).getH1F("multiplicity_sec"+ sec).fill(nHitSector[sec-1]*1.0);
+        }
+
+        for(int key : multiplicity.keySet()) {
+            int slot   = this.getL(key);
+            int group  = this.getC(key)/16;
+            int sector = this.forward.getIntValue("sector", this.getS(key), this.getL(key), this.getC(key));
+            int layer  = this.forward.getIntValue("layer",  this.getS(key), this.getL(key), this.getC(key));
+            int region = (layer-1)/12+1;
+            int sc = slot<10 ? (slot-3)*6+group : (slot-7)*6+group;
+            this.getDataGroup().getItem(sector,0,0).getH2F("group_mult_sec"+sector).fill(multiplicity.get(key),(region-1)*85+sc);
+        }
     }
 
     @Override
     public void analysisUpdate() {
-        //System.out.println("Updating DC");
+
         if(this.getNumberOfEvents()>0) {
             for(int sector=1; sector <=6; sector++) {
                 H2F raw = this.getDataGroup().getItem(sector,0,0).getH2F("raw_sec"+sector);
@@ -311,7 +312,6 @@ public class DCmonitor extends DetectorMonitor {
                 }
             }
         }
-     
         
         if(this.getNumberOfEvents()>0) {
             int entries = 0;
