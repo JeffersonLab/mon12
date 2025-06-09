@@ -38,9 +38,10 @@ public class Acronyms  extends JTabbedPane {
                 + "TDC:\t\tTime to Digital Converter \n"
                 + "PMT:\t\tPhoto Multiplier Tube\n"
                 + "SiPM:\t\tSilicon Photomultiplier\n");
-        this.acronymsPanel.add(acronymsDefinitions,BorderLayout.CENTER);
+        this.acronymsPanel.add(acronymsDefinitions,BorderLayout.WEST);
         acronymsDefinitions.setFont(new Font("Avenir",Font.PLAIN,16));
         acronymsDefinitions.setEditable(false);
+        this.acronymsPanel.add(Util.getImage("/images/clas12-design.jpg",0.3),BorderLayout.CENTER);
     }
       
 }

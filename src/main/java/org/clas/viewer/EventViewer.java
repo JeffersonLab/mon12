@@ -320,7 +320,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
         styledDoc.setParagraphAttributes(0, styledDoc.getLength(), center, false);
         clas12Text.setBackground(CLAS12View.getBackground());
         clas12Text.setFont(new Font("Avenir",Font.PLAIN,20));
-        JLabel clas12Design = this.getImage("https://www.jlab.org/Hall-B/clas12-web/sidebar/clas12-design.jpg",0.08);
+        JLabel clas12Design = Util.getImage("/images/CLAS-frame-high.jpg",0.1);
         CLAS12View.add(this.clas12Textinfo,BorderLayout.BEFORE_FIRST_LINE );
         CLAS12View.add(clas12Design);
         CLAS12View.add(clas12Text,BorderLayout.PAGE_END);
@@ -532,22 +532,6 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
                 JOptionPane.showMessageDialog(null, "Value must be a positive integer!");
             }
         }
-    }
-        
-    private JLabel getImage(String path, double scale) {
-        Image image = null;
-        try {
-            URL url = new URL(path);
-            image = ImageIO.read(url);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Picture upload from " + path + " failed");
-        }
-        ImageIcon imageIcon = new ImageIcon(image);
-        double width = imageIcon.getIconWidth() * scale;
-        double height = imageIcon.getIconHeight() * scale;
-        imageIcon = new ImageIcon(image.getScaledInstance((int) width, (int) height, Image.SCALE_SMOOTH));
-        return new JLabel(imageIcon);
     }
 
     private int getEventNumber(DataEvent event) {
