@@ -483,7 +483,7 @@ public class EventViewer implements IDataEventListener, DetectorListener, Action
                 }
             }
         }
-        for (String path : ret.keySet()) System.out.println("Saved "+path);
+        //for (String path : ret.keySet()) System.out.println("Saved "+path);
         return ret;
     }
 
