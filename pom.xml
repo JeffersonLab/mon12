@@ -68,7 +68,6 @@
     </repositories>
     <name>clas12mon</name>
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <release>21</release>
     </properties>
 </project>
