@@ -9,6 +9,7 @@ import org.jlab.groot.group.DataGroup;
 import org.jlab.io.base.DataBank;
 import org.jlab.io.base.DataEvent;
 import org.jlab.utils.groups.IndexedList;
+import org.jlab.utils.groups.IndexedList.IndexGenerator;
 import org.jlab.utils.groups.IndexedTable;
 
 /**
@@ -132,10 +133,11 @@ public class DCmonitor extends DetectorMonitor {
     private static IndexedTable getReverseTT(IndexedTable tt) {
         System.err.print("Inverting DC translation table, this may take a few seconds ...");
         IndexedTable ret = new IndexedTable(4, "crate/I:slot/I:channel/I");
+        IndexGenerator gen = new IndexGenerator();
         for(Object key : tt.getList().getMap().keySet()) {
-            int crate   = IndexedList.IndexGenerator.getIndex((long)key, 0);
-            int slot    = IndexedList.IndexGenerator.getIndex((long)key, 1);
-            int channel = IndexedList.IndexGenerator.getIndex((long)key, 2);
+            int crate   = gen.getIndex((long)key, 0);
+            int slot    = gen.getIndex((long)key, 1);
+            int channel = gen.getIndex((long)key, 2);
             int sector  = tt.getIntValue("sector",    crate,slot,channel);
             int layer   = tt.getIntValue("layer",     crate,slot,channel);
             int comp    = tt.getIntValue("component", crate,slot,channel);
